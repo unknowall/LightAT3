@@ -1,0 +1,1 @@
+## Lightweight ATRAC3/AT3plus decoder for .NET. Supports common container formats (RIFF WAV / OpenMG / PSP AT3). No external ffmpeg required.

@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <LangVersion>9</LangVersion>
+        <NullableContextOptions>disable</NullableContextOptions>
+        <RootNamespace>LightAT3</RootNamespace>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <Title>Light.Atrac3</Title>
+        <Version>1.0.5</Version>
+        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+        <Authors>unknowall - sgfree@hotmail.com</Authors>
+        <RepositoryUrl>https://github.com/unknowall/LightAT3</RepositoryUrl>
+        <Description>Lightweight ATRAC3/AT3plus decoder for .NET. No external ffmpeg required.</Description>
+        <PackageReadmeFile>README-EN.md</PackageReadmeFile>
+        <Copyright>unknowall - sgfree@hotmail.com</Copyright>
+        <PackageProjectUrl>https://github.com/unknowall/LightAT3</PackageProjectUrl>
+        <PackageTags>ATRAC3Plus;ATRAC3</PackageTags>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <PlatformTarget>AnyCPU</PlatformTarget>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <PlatformTarget>AnyCPU</PlatformTarget>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+      <NoWarn>1701;1702;8618;8625</NoWarn>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+      <NoWarn>1701;1702;8618;8625</NoWarn>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <None Include="..\README-EN.md">
+        <Pack>True</Pack>
+        <PackagePath>\</PackagePath>
+      </None>
+    </ItemGroup>
+
+</Project>
