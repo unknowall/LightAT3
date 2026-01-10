@@ -9,7 +9,7 @@
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <Title>Light.Atrac3</Title>
-        <Version>1.0.5</Version>
+        <Version>1.0.0</Version>
         <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
         <Authors>unknowall - sgfree@hotmail.com</Authors>
         <RepositoryUrl>https://github.com/unknowall/LightAT3</RepositoryUrl>
@@ -17,7 +17,10 @@
         <PackageReadmeFile>README-EN.md</PackageReadmeFile>
         <Copyright>unknowall - sgfree@hotmail.com</Copyright>
         <PackageProjectUrl>https://github.com/unknowall/LightAT3</PackageProjectUrl>
-        <PackageTags>ATRAC3Plus;ATRAC3</PackageTags>
+        <PackageTags>atrac3;atrac3plus;decoder;audio</PackageTags>
+        <AssemblyName>Light.Atrac3</AssemblyName>
+        <PackageLicenseExpression>GPL-2.0-or-later</PackageLicenseExpression>
+        <PackageId>Light.Atrac3</PackageId>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

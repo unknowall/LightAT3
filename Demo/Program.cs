@@ -1,14 +1,24 @@
-﻿using SDL2;
+﻿using LightAT3;
+using SDL2;
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
-
-using LightAT3;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using static SDL2.SDL;
 
 #pragma warning disable CS8618
 #pragma warning disable CS8625
 
 class Program
 {
+    private static uint audiodeviceid;
+
+    private static SDL_AudioCallback audioCallbackDelegate;
+
+    private static ConcurrentQueue<short[]> Queue = new ConcurrentQueue<short[]>();
+
     [STAThreadAttribute]
     private static void Main(string[] args)
     {
@@ -17,20 +27,90 @@ class Program
             Console.Error.WriteLine("Couldn't initialize SDL");
             return;
         }
+
+        audioCallbackDelegate = AudioCallback;
+
+        SDL_AudioSpec desired = new SDL_AudioSpec
+        {
+            channels = 2,
+            format = AUDIO_S16,
+            freq = 44100,
+            samples = 1024,
+            callback = audioCallbackDelegate,
+            userdata = IntPtr.Zero
+
+        };
+        SDL_AudioSpec obtained = new SDL_AudioSpec();
+
+        audiodeviceid = SDL_OpenAudioDevice(null, 0, ref desired, out obtained, 0);
+
+        if (audiodeviceid != 0)
+            SDL_PauseAudioDevice(audiodeviceid, 0);
+
+        if (args[1] == null)
+            args[1] = "./Demo.at3";
+
+        Player player = new Player();
+        string File = args[1];
+        FileStream stream = new FileStream(File, FileMode.Append, FileAccess.Read);
+
+        Task.Factory.StartNew(() =>
+        {
+            player.Play(stream);
+        });
+
+        do
+        {
+            Thread.Sleep(100);
+
+        } while (!stream.Eof());
+    }
+
+    private unsafe static void AudioCallback(IntPtr userdata, IntPtr stream, int len)
+    {
+        int requiredSamples = len / sizeof(short);
+        var streamSpan = new Span<short>((void*)stream, requiredSamples);
+        streamSpan.Fill(0);
+
+        if (Queue.Count == 0)
+        {
+            return;
+        }
+
+        int filledSamples = 0;
+        while (filledSamples < requiredSamples && Queue.TryDequeue(out var buffer))
+        {
+            if (buffer == null || buffer.Length == 0)
+            {
+                continue;
+            }
+            int copyCount = Math.Min(buffer.Length, requiredSamples - filledSamples);
+            new Span<short>(buffer, 0, copyCount).CopyTo(streamSpan.Slice(filledSamples));
+            filledSamples += copyCount;
+        }
     }
 
     public unsafe class Player
     {
-        public static int Play(Stream stream, Stream outStream)
+        public string ReadString(Stream stream, int length, int offset = 0)
         {
-            var strt = stream.ReadString(3);
+            byte[] buffer = new byte[length];
+            stream.Read(buffer, offset, length);
+            return System.Text.Encoding.UTF8.GetString(buffer);
+        }
+
+        public int Play(Stream stream)//, Stream outStream)
+        {
+            var strt = ReadString(stream, 3);
+
             stream.Position = 0;
 
             ushort bztmp;
+
             if (strt == "ea3")
             {
-                //we get ea3 header
                 Console.WriteLine("ea3 header\n");
+
                 stream.Position = 0x6;
                 var tmp = stream.ReadBytes(4);
                 var skipbytes = 0;
@@ -44,7 +124,6 @@ class Program
 
             if (strt == "RIF") //RIFF
             {
-                //we get RIFF header
                 Console.WriteLine("RIFF header\n");
                 stream.Position = 0x10;
                 var fmtSize = stream.ReadStruct<int>();
@@ -58,17 +137,15 @@ class Program
                 bztmp = stream.ReadStruct<UshortBe>();
                 stream.Skip(fmtSize - 0x2c);
 
-                //search the data chunk
                 for (var a0 = 0; a0 < 0x100; a0++)
                 {
-                    if (stream.ReadString(4) == "atad") break;
+                    if (ReadString(stream, 4, a0) == "atad") break;
                 }
-                // ReSharper disable once UnusedVariable
+
                 var tmpr = stream.ReadStruct<int>();
             }
             else
             {
-                //EA3 block that contains at3+ stream
                 Console.WriteLine("EA3 header");
                 stream.Skip(0x22);
 
@@ -76,27 +153,24 @@ class Program
                 bztmp = stream.ReadStruct<UshortBe>();
                 stream.Skip(0x3c);
             }
-            var blocksz = bztmp & 0x3FF;
 
+            var blocksz = bztmp & 0x3FF;
             var buf0 = new byte[0x3000];
             var chns = 0;
+
             fixed (byte* buf0Ptr = buf0)
             {
-                //calculate the frame block size here
                 var blockSize = blocksz * 8 + 8;
 
                 Console.WriteLine("frame_block_size 0x{0:X}\n", blockSize);
 
-                //Console.ReadKey();
-
-                //so we make a new at3+ frame decoder
-                var d2 = new MaiAt3PlusFrameDecoder();
+                var d2 = new FrameDecoder();
 
                 stream.Read(buf0, 0, blockSize);
+
                 short[] pBuf;
                 int rs;
-                //decode the first frame and get channel num
-                //for (int n = 0; n < block_size; n++) Console.Write(buf0[n]);
+
                 if ((rs = d2.DecodeFrame(buf0Ptr, blockSize, out chns, out pBuf)) != 0)
                 {
                     Console.WriteLine("decode error {0}", rs);
@@ -104,28 +178,84 @@ class Program
                 Console.WriteLine("channels: {0}\n", chns);
                 if (chns > 2) Console.WriteLine("warning: waveout doesn't support {0} chns\n", chns);
 
-                //just waveout
-                //MaiWaveOutI *mwo0 = new MaiWaveOutI(chns, 44100, 16);
-
-                //mwo0.play();
                 while (!stream.Eof())
                 {
                     stream.Read(buf0, 0, blockSize);
 
-                    //decode frame and get sample data
                     if ((rs = d2.DecodeFrame(buf0Ptr, blockSize, out chns, out pBuf)) != 0)
                         Console.WriteLine("decode error {0}", rs);
-                    //play it
 
-                    outStream.WriteStructVector(pBuf, 0x800 * chns);
+                    //outStream.WriteStructVector(pBuf, 0x800 * chns);
+
+                    Queue.Enqueue(pBuf);
+
+                    while (Queue.Count > 0) Thread.Sleep(1);
 
                     //mwo0.enqueue((Mai_I8*)p_buf, 0x800 * chns * 2);
                 }
 
-                //while (mwo0.getRemainBufSize()) Mai_Sleep(1);
                 return 0;
             }
         }
+    }
+
+    public struct UshortLe
+    {
+        public ushort NativeValue { set; get; }
+
+        public static implicit operator uint(UshortLe that)
+        {
+            return that.NativeValue;
+        }
+
+        public static implicit operator UshortLe(ushort that)
+        {
+            return new UshortLe()
+            {
+                NativeValue = that,
+            };
+        }
+
+        public static implicit operator UshortLe(UshortBe that)
+        {
+            return (ushort)that;
+        }
+
+        public override string ToString()
+        {
+            return NativeValue.ToString();
+        }
+    }
+
+    public struct UshortBe
+    {
+        public static ushort ByteSwap(ushort value)
+        {
+            return (ushort)((value >> 8) | (value << 8));
+        }
+
+        private ushort _internalValue;
+
+        public ushort NativeValue
+        {
+            set => _internalValue = ByteSwap(value);
+            get => ByteSwap(_internalValue);
+        }
+
+        public static implicit operator ushort(UshortBe that) => that.NativeValue;
+
+        public static implicit operator UshortBe(ushort that) => new UshortBe
+        {
+            NativeValue = that,
+        };
+
+        public static implicit operator UshortBe(UshortLe that) => (ushort)that;
+
+        public override string ToString() => NativeValue.ToString();
+
+        public byte Low => (byte)(NativeValue >> 0);
+
+        public byte High => (byte)(NativeValue >> 8);
     }
 
 }
