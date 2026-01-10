@@ -1983,7 +1983,6 @@ namespace LightAT3
             return rs;
         }
 
-
         static int MAPCDSF_makeInnerPackTable0CheckTable(DecoderChnInfo chn_info, int arg2)
         {
             int rs = 0;
@@ -2165,8 +2164,7 @@ namespace LightAT3
             MAPCDSF_decodeACC6Inner1_Route3
         };
 
-        static int MAPCDSF_calcACCTableTableUnk3ByLastValue(DecoderChnAccTableTable table,
-            BitReader mbr0)
+        static int MAPCDSF_calcACCTableTableUnk3ByLastValue(DecoderChnAccTableTable table, BitReader mbr0)
         {
             int rs = 0;
 
@@ -2221,8 +2219,7 @@ namespace LightAT3
             return rs;
         }
 
-        static int MAPCDSF_calcACCTableTableUnk3ByAfterValue(DecoderChnAccTableTable table,
-            BitReader mbr0)
+        static int MAPCDSF_calcACCTableTableUnk3ByAfterValue(DecoderChnAccTableTable table, BitReader mbr0)
         {
             int rs = 0;
 
@@ -2433,7 +2430,6 @@ namespace LightAT3
 
             return rs;
         }
-
 
         static int MAPCDSF_splitePack1_Route0(BitReader mbr0, DecoderChnInfo chn_info)
         {
@@ -2695,7 +2691,6 @@ namespace LightAT3
             return rs;
         }
 
-
         static int MAPCDSF_splitePack2_Route1(BitReader mbr0, DecoderChnInfo chn_info)
         {
             int rs = 0;
@@ -2769,7 +2764,6 @@ namespace LightAT3
 
             return rs;
         }
-
 
         static int MAPCDSF_splitePack2_Route3(BitReader mbr0, DecoderChnInfo chn_info)
         {

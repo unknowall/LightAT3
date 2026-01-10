@@ -34,7 +34,6 @@ namespace LightAT3
         public ManagedPointer<DecoderChnAccTableData> Ptr0;
     }
 
-
     public sealed class DecoderChnAccTable
     {
         public DecoderChnAccTableInner Inner;

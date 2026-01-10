@@ -2,8 +2,9 @@
 using SDL2;
 using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using static SDL2.SDL;
@@ -14,10 +15,10 @@ using static SDL2.SDL;
 class Program
 {
     private static uint audiodeviceid;
-
-    private static SDL_AudioCallback audioCallbackDelegate;
-
-    private static ConcurrentQueue<short[]> Queue = new ConcurrentQueue<short[]>();
+    private static SDL.SDL_AudioCallback audioCallbackDelegate;
+    private static short[] CurrentPcm;
+    private static int CurrentPlayPos = 0;
+    private static readonly object BufferLock = new object();
 
     [STAThreadAttribute]
     private static void Main(string[] args)
@@ -35,7 +36,7 @@ class Program
             channels = 2,
             format = AUDIO_S16,
             freq = 44100,
-            samples = 1024,
+            samples = 16384,
             callback = audioCallbackDelegate,
             userdata = IntPtr.Zero
 
@@ -47,23 +48,26 @@ class Program
         if (audiodeviceid != 0)
             SDL_PauseAudioDevice(audiodeviceid, 0);
 
-        if (args[1] == null)
-            args[1] = "./Demo.at3";
+        string Fn;
+
+        if (args.Length < 1)
+            Fn = "./Demo.at3";
+        else
+            Fn = args[0];
 
         Player player = new Player();
-        string File = args[1];
-        FileStream stream = new FileStream(File, FileMode.Append, FileAccess.Read);
+        FileStream stream = new FileStream(Fn, FileMode.Open, FileAccess.Read);
+        int ret = -1;
 
         Task.Factory.StartNew(() =>
         {
-            player.Play(stream);
+            ret = player.Play(stream);
         });
 
-        do
+        while (ret == -1)
         {
             Thread.Sleep(100);
-
-        } while (!stream.Eof());
+        }
     }
 
     private unsafe static void AudioCallback(IntPtr userdata, IntPtr stream, int len)
@@ -72,130 +76,154 @@ class Program
         var streamSpan = new Span<short>((void*)stream, requiredSamples);
         streamSpan.Fill(0);
 
-        if (Queue.Count == 0)
+        lock (BufferLock)
         {
-            return;
-        }
+            if (CurrentPcm == null) return;
 
-        int filledSamples = 0;
-        while (filledSamples < requiredSamples && Queue.TryDequeue(out var buffer))
-        {
-            if (buffer == null || buffer.Length == 0)
+            int copyCount = Math.Min(CurrentPcm.Length - CurrentPlayPos, requiredSamples);
+
+            if (copyCount > 0)
             {
-                continue;
+                new Span<short>(CurrentPcm, CurrentPlayPos, copyCount).CopyTo(streamSpan);
+                CurrentPlayPos += copyCount;
             }
-            int copyCount = Math.Min(buffer.Length, requiredSamples - filledSamples);
-            new Span<short>(buffer, 0, copyCount).CopyTo(streamSpan.Slice(filledSamples));
-            filledSamples += copyCount;
         }
     }
 
     public unsafe class Player
     {
+        public At3FormatStruct Format;
+        public FactStruct Fact;
+        public SmplStruct Smpl;
+        public LoopInfoStruct[] LoopInfoList;
+        public SliceStream DataStream;
+
+        public static short[] pBuf;
+
         public string ReadString(Stream stream, int length, int offset = 0)
         {
-            byte[] buffer = new byte[length];
-            stream.Read(buffer, offset, length);
-            return System.Text.Encoding.UTF8.GetString(buffer);
+            var buffer = new byte[length];
+            stream.Seek(offset, SeekOrigin.Current);
+            stream.Read(buffer, 0, length);
+            return Encoding.ASCII.GetString(buffer);
         }
 
-        public int Play(Stream stream)//, Stream outStream)
+        public int Play(Stream stream)
         {
-            var strt = ReadString(stream, 3);
+            var strt = ReadString(stream, 4);
 
-            stream.Position = 0;
-
-            ushort bztmp;
-
-            if (strt == "ea3")
+            if (strt != "RIFF")
             {
-                Console.WriteLine("ea3 header\n");
-
-                stream.Position = 0x6;
-                var tmp = stream.ReadBytes(4);
-                var skipbytes = 0;
-                for (var a0 = 0; a0 < 4; a0++)
-                {
-                    skipbytes <<= 7;
-                    skipbytes += tmp[a0] & 0x7F;
-                }
-                stream.Skip(skipbytes);
-            }
-
-            if (strt == "RIF") //RIFF
-            {
-                Console.WriteLine("RIFF header\n");
-                stream.Position = 0x10;
-                var fmtSize = stream.ReadStruct<int>();
-                var fmt = stream.ReadStruct<ushort>();
-                if (fmt != 0xFFFE)
-                {
-                    Console.WriteLine("RIFF File fmt error\n");
-                    return -1;
-                }
-                stream.Skip(0x28);
-                bztmp = stream.ReadStruct<UshortBe>();
-                stream.Skip(fmtSize - 0x2c);
-
-                for (var a0 = 0; a0 < 0x100; a0++)
-                {
-                    if (ReadString(stream, 4, a0) == "atad") break;
-                }
-
-                var tmpr = stream.ReadStruct<int>();
-            }
-            else
-            {
-                Console.WriteLine("EA3 header");
-                stream.Skip(0x22);
-
-                Console.WriteLine("{0:X}", stream.Position);
-                bztmp = stream.ReadStruct<UshortBe>();
-                stream.Skip(0x3c);
-            }
-
-            var blocksz = bztmp & 0x3FF;
-            var buf0 = new byte[0x3000];
-            var chns = 0;
-
-            fixed (byte* buf0Ptr = buf0)
-            {
-                var blockSize = blocksz * 8 + 8;
-
-                Console.WriteLine("frame_block_size 0x{0:X}\n", blockSize);
-
-                var d2 = new FrameDecoder();
-
-                stream.Read(buf0, 0, blockSize);
-
-                short[] pBuf;
-                int rs;
-
-                if ((rs = d2.DecodeFrame(buf0Ptr, blockSize, out chns, out pBuf)) != 0)
-                {
-                    Console.WriteLine("decode error {0}", rs);
-                }
-                Console.WriteLine("channels: {0}\n", chns);
-                if (chns > 2) Console.WriteLine("warning: waveout doesn't support {0} chns\n", chns);
-
-                while (!stream.Eof())
-                {
-                    stream.Read(buf0, 0, blockSize);
-
-                    if ((rs = d2.DecodeFrame(buf0Ptr, blockSize, out chns, out pBuf)) != 0)
-                        Console.WriteLine("decode error {0}", rs);
-
-                    //outStream.WriteStructVector(pBuf, 0x800 * chns);
-
-                    Queue.Enqueue(pBuf);
-
-                    while (Queue.Count > 0) Thread.Sleep(1);
-
-                    //mwo0.enqueue((Mai_I8*)p_buf, 0x800 * chns * 2);
-                }
+                Console.WriteLine("Not a RIFF File");
 
                 return 0;
             }
+
+            var RiffSize = new BinaryReader(stream).ReadUInt32();
+            var RiffStream = stream.ReadStream(RiffSize);
+
+            strt = ReadString(RiffStream, 4);
+
+            if (strt != "WAVE")
+            {
+                Console.WriteLine("Not a RIFF.WAVE File");
+                return 0;
+            }
+
+            while (!RiffStream.Eof())
+            {
+                var ChunkType = ReadString(RiffStream, 4);
+                var ChunkSize = new BinaryReader(RiffStream).ReadUInt32();
+                var ChunkStream = RiffStream.ReadStream(ChunkSize);
+
+                switch (ChunkType)
+                {
+                    case "fmt ":
+                        Format = ChunkStream.ReadStructPartially<At3FormatStruct>();
+                        continue;
+
+                    case "fact":
+                        Fact = ChunkStream.ReadStructPartially<FactStruct>();
+                        continue;
+
+                    case "smpl":
+                        Smpl = ChunkStream.ReadStructPartially<SmplStruct>();
+                        LoopInfoList = ChunkStream.ReadStructVector<LoopInfoStruct>(Smpl.LoopCount);
+
+                        Console.WriteLine($"AT3 smpl: {Smpl.LoopCount} BlockSize 0x{Format.BlockSize:X}");
+                        foreach (var LoopInfo in LoopInfoList)
+                            Console.WriteLine($"Loop: StartSample {LoopInfo.StartSample} EndSample {LoopInfo.EndSample} " +
+                                $"PlayCount {LoopInfo.PlayCount} Type {LoopInfo.Type} Fraction {LoopInfo.Fraction}");
+
+                        continue;
+
+                    case "data":
+                        this.DataStream = ChunkStream;
+                        break;
+
+                    default:
+                        Console.WriteLine($"Can't handle chunk '{ChunkType}'");
+                        return 0;
+                }
+            }
+
+            var BlockSize = this.Format.BlockSize;
+
+            if (BlockSize <= 0)
+            {
+                Console.WriteLine("BlockSize <= 0");
+                return 0;
+            }
+
+            if (this.DataStream.Available() < BlockSize)
+            {
+                Console.WriteLine("EndOfData {0} < {1}", this.DataStream.Available(), BlockSize);
+                return 0;
+            }
+
+            var Data = new byte[BlockSize];
+            var FrameDecoder = new FrameDecoder();
+            short[] pBuf;
+            int rs, chns;
+
+            while (!DataStream.Eof())
+            {
+                this.DataStream.Read(Data, 0, Data.Length);
+
+                fixed (byte* Ptr = Data)
+                {
+                    if ((rs = FrameDecoder.DecodeFrame(Ptr, BlockSize, out chns, out pBuf)) != 0)
+                    {
+                        Console.WriteLine("decode error {0}", rs);
+                    }
+                }
+
+                Console.WriteLine($"Channels: {chns}, Decoded Size {pBuf.Length}");
+
+                if (chns > 2) Console.WriteLine("warning: waveout doesn't support {0} chns\n", chns);
+
+                lock (BufferLock)
+                {
+                    CurrentPcm = pBuf;
+                    CurrentPlayPos = 0;
+                }
+
+                while (true)
+                {
+                    bool finished;
+
+                    lock (BufferLock)
+                    {
+                        finished = CurrentPlayPos >= CurrentPcm.Length;
+                    }
+
+                    if (finished) break;
+
+                    Thread.Sleep(1);
+                }
+            }
+
+            return 1;
         }
     }
 
@@ -256,6 +284,139 @@ class Program
         public byte Low => (byte)(NativeValue >> 0);
 
         public byte High => (byte)(NativeValue >> 8);
+    }
+
+    public enum CompressionCode : ushort
+    {
+        Unknown = 0x0000,
+        PcmUncompressed = 0x0001,
+        MicrosoftAdpcm = 0x0002,
+        ItuG711ALaw = 0x0006,
+        ItuG711AmLaw = 0x0007,
+        ImaAdpcm = 0x0011,
+        ItuG723AdpcmYamaha = 0x0016,
+        Gsm610 = 0x0031,
+        ItuG721Adpcm = 0x0040,
+        Mpeg = 0x0050,
+        Atrac3 = 0x0270,
+        Atrac3Plus = 0xFFFE,
+        Experimental = 0xFFFF,
+    }
+
+    public struct WavFormatStruct
+    {
+        public CompressionCode CompressionCode;
+
+        public ushort AtracChannels;
+
+        public int Bitrate;
+
+        public uint BytesPerSecond;
+
+        public ushort BlockAlignment;
+    }
+
+    [StructLayout(LayoutKind.Explicit)]
+    public unsafe struct At3FormatStruct
+    {
+        /// <summary>
+        /// 01 00 - For Uncompressed PCM (linear quntization)
+        /// FE FF - For AT3+
+        /// </summary>
+        [FieldOffset(0x0000)] public CompressionCode CompressionCode;
+
+        /// <summary>
+        /// 02 00       - Stereo
+        /// </summary>
+        [FieldOffset(0x0002)] public ushort AtracChannels;
+
+        /// <summary>
+        /// 44 AC 00 00 - 44100
+        /// </summary>
+        [FieldOffset(0x0004)] public uint Bitrate;
+
+        /// <summary>
+        /// Should be on uncompressed PCM : sampleRate * short.sizeof * numberOfChannels
+        /// </summary>
+        [FieldOffset(0x0008)] public uint AverageBytesPerSecond;
+
+        /// <summary>
+        /// short.sizeof * numberOfChannels
+        /// </summary>
+        [FieldOffset(0x000A)] public ushort BlockAlignment;
+
+        [FieldOffset(0x000C)] public ushort BytesPerFrame;
+
+        [FieldOffset(0x0010)] private fixed uint Unknown[6];
+
+        [FieldOffset(0x0028)] public uint OmaInfo;
+
+        [FieldOffset(0x0028)] private UshortBe _Unk2;
+
+        [FieldOffset(0x002A)] private UshortBe _BlockSize;
+
+        public int BlockSize => (_BlockSize & 0x3FF) * 8 + 8;
+    }
+
+    public struct FactStruct
+    {
+        public int EndSample;
+
+        public int SampleOffset;
+    }
+
+    /// <summary>
+    /// Loop Info
+    /// </summary>
+    public unsafe struct SmplStruct
+    {
+        /// <summary>
+        /// 0000 -
+        /// </summary>
+        private fixed uint Unknown[7];
+
+        /// <summary>
+        /// 001C -
+        /// </summary>
+        public uint LoopCount;
+
+        /// <summary>
+        /// 0020 - 
+        /// </summary>
+        private fixed uint Unknown2[1];
+    }
+
+    public struct LoopInfoStruct
+    {
+        /// <summary>
+        /// 0000 -
+        /// </summary>
+        public uint CuePointID;
+
+        /// <summary>
+        /// 0004 -
+        /// </summary>
+        public uint Type;
+
+        /// <summary>
+        /// 0008 -
+        /// </summary>
+        public int StartSample;
+
+        /// <summary>
+        /// 000C -
+        /// </summary>
+        public int EndSample;
+
+        /// <summary>
+        /// 0010 -
+        /// </summary>
+        public uint Fraction;
+
+        /// <summary>
+        /// 0014 -
+        /// </summary>
+        public int PlayCount;
     }
 
 }

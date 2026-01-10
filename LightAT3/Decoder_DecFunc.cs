@@ -105,8 +105,6 @@
                     }
                 }
 
-                float* l127 = stackalloc float[0x80];
-
                 for (int a00 = 0; a00 < chns; a00++)
                 {
                     var chn_infos_a00 = chn_infos[a00];
@@ -152,24 +150,25 @@
                                 {
                                     mtmp0 = chn_infos[1].Table4;
                                     acc_data1 = chn_infos[1].AccDataOld;
-                                    acc_data2 = chn_infos[1].AccDataNow;
+                                    acc_data2 = chn_infos[1].AccDataNow; //
                                 }
                                 else
                                 {
                                     mtmp0 = chn_infos[0].Table4;
                                     acc_data1 = chn_infos[0].AccDataOld;
-                                    acc_data2 = chn_infos[0].AccDataNow;
+                                    acc_data2 = chn_infos[0].AccDataNow; //
                                 }
                             }
 
                             if (table_tmp3[mtmp0[table_tmp2[a0]]] > 0.0f)
                             {
-                                //float* l127 = stackalloc float[0x80];
+                                float* l127 = stackalloc float[0x80];
                                 int arg3_1 = l136[a0];
                                 for (uint a1 = 0; a1 < 0x80; a1++)
                                 {
                                     uint tmp0 = 0x38000000;
-                                    l127[a1] = Decoder_StaticData.MAPCDSD_table_static_0[arg3_1 & 0x3FF] * (*(float*)&tmp0);
+                                    l127[a1] = Decoder_StaticData.MAPCDSD_table_static_0[arg3_1 & 0x3FF] *
+                                               (*(float*)&tmp0);
                                     arg3_1++;
                                 }
 
@@ -206,7 +205,7 @@
                                 }
 
                                 int dtmp1 = rt0 < 0 ? 0 : 1 << rt0;
-                                float l128_ = table_tmp3[mtmp0[table_tmp2[a0]]] / dtmp1;
+                                float l128 = table_tmp3[mtmp0[table_tmp2[a0]]] / dtmp1;
 
                                 for (uint a1 = MAPCDDF_initMDataTable_table_tmp5[a0];
                                     a1 < MAPCDDF_initMDataTable_table_tmp6[a0];
@@ -216,7 +215,7 @@
                                     {
                                         float l129 = table_tmp0[chn_infos[a00].Table0[a1]]
                                                      * table_tmp1[chn_infos[a00].Table1[a1]]
-                                                     * l128_
+                                                     * l128
                                                      / (1 << (int)chn_infos[a00].Table0[a1]);
 
                                         for (int a2 = (int)table_search0[a1], a3 = 0;
@@ -232,7 +231,6 @@
                     }
                 }
 
-                float* l128 = stackalloc float[0x80];
 
                 if (chns == 2)
                 {
@@ -240,7 +238,7 @@
                     {
                         if (chn_infos[0].JointChnInfo.Table48.Data[a0] == 1)
                         {
-                            //float* l128 = stackalloc float[0x80];
+                            float* l128 = stackalloc float[0x80];
                             for (uint a1 = 0; a1 < 0x80; a1++) l128[a1] = pptablef0[0][a0 * 0x80 + a1];
                             for (uint a1 = 0; a1 < 0x80; a1++)
                                 pptablef0[0][a0 * 0x80 + a1] = pptablef0[1][a0 * 0x80 + a1];
@@ -508,28 +506,6 @@
 
         const float pi = 3.14159265f;
 
-        //private float* __memptr = null;
-        //private uint curmemptr;
-        //private float* __alloc(uint size)
-        //{
-        //    if (__memptr == null)
-        //    {
-        //        float* __memptr = (float*)Marshal.AllocHGlobal(0x10000);
-        //        curmemptr = 0;
-        //    }
-
-        //    float* _ret = __memptr + curmemptr;
-
-        //    curmemptr += size;
-
-        //    return _ret;
-        //}
-
-        //private void __freealloc()
-        //{
-        //    Marshal.FreeHGlobal((nint)__memptr);
-        //}
-
         public int decodeStream(uint chns)
         {
             int rs = 0;
@@ -540,35 +516,15 @@
             mdata0_table[0] = mdata0_0;
             mdata0_table[1] = mdata0_1;
 
-            float** l2080 = stackalloc float*[0x10];
-            float* l2048 = stackalloc float[0x800];
-
-            float* l512 = stackalloc float[0x100];
-            float* l256 = stackalloc float[0x100];
-
-            float* stmp40 = stackalloc float[0x80];
-
-            int* l63 = stackalloc int[0x40];
-
-            float* l128 = stackalloc float[0x80];
-
-            float* stmp140 = stackalloc float[0x10];
-
-            float* stmp30 = stackalloc float[0x100];
-
-            float* locals = stackalloc float[0x100];
-
-            float* calc_buf = stackalloc float[0x100];
-
             {
-                MAPCDDF_initMDataTable(_chnInfo, mdata0_table, chns);
+                MAPCDDF_initMDataTable(_chnInfo, mdata0_table, chns); //
 
                 if (true)
                 {
                     for (int a00 = 0; a00 < chns; a00++)
                     {
-                        //float** l2080 = stackalloc float*[0x10];
-                        //float* l2048 = stackalloc float[0x800];
+                        float** l2080 = stackalloc float*[0x10];
+                        float* l2048 = stackalloc float[0x800];
 
                         for (int a0 = 0; a0 < 0x800; a0++) l2048[a0] = 0.0f;
 
@@ -579,18 +535,17 @@
 
                         for (int a0 = 0; a0 < _chnInfo[0].JointChnInfo.NumBandDeclared; a0++)
                         {
-                            _chnInfo[a00].AccDataNow.Table[a0].AccNow = _chnInfo[a00].AccDataNow.Acc.Data[a0];
+                            _chnInfo[a00].AccDataNow.Table[a0].AccNow =
+                                _chnInfo[a00].AccDataNow.Acc.Data[a0];
                         }
 
                         {
-                            //float* l512 = stackalloc float[0x100];
-                            //float* l256 = stackalloc float[0x100];
+                            float* l512 = stackalloc float[0x100];
+                            float* l256 = stackalloc float[0x100];
 
                             for (int a0 = 0; a0 < _chnInfo[0].JointChnInfo.NumBandDeclared; a0++)
                             {
-#pragma warning disable CS8600
                                 ManagedPointer<float> table_shita = null;
-#pragma warning restore CS8600
 
                                 if (_chnInfo[a00].AccDataOld.Table[a0].AccNow
                                     == 0)
@@ -623,7 +578,7 @@
                                 }
 
                                 {
-                                    //float* stmp40 = stackalloc float[0x80];
+                                    float* stmp40 = stackalloc float[0x80];
 
                                     for (uint a1 = 0; a1 < 0x40; a1++)
                                     {
@@ -690,26 +645,31 @@
                                     for (uint a1 = 0; a1 < 0x40; a1++)
                                     {
                                         l512[a1] = stmp40[search_table_tmp0[a1]] * table_shita[a1];
-                                        l512[0xC0 + a1] = -1.0f * stmp40[search_table_tmp1[a1]] * table_shita[0xc0 + a1];
+                                        l512[0xC0 + a1] =
+                                            -1.0f * stmp40[search_table_tmp1[a1]] * table_shita[0xc0 + a1];
                                     }
 
                                     for (uint a1 = 0; a1 < 0x80; a1++)
                                     {
-                                        l512[0x40 + a1] = -1.0f * stmp40[search_table_tmp2[0x80 - a1 - 1]] * table_shita[0x40 + a1];
+                                        l512[0x40 + a1] =
+                                            -1.0f * stmp40[search_table_tmp2[0x80 - a1 - 1]] * table_shita[0x40 + a1];
                                     }
                                 }
 
-                                if (_chnInfo[a00].AccDataOld.Table[a0].NumAcc != 0 || _chnInfo[a00].AccDataNow.Table[a0].NumAcc != 0)
+                                if (_chnInfo[a00].AccDataOld.Table[a0].NumAcc != 0 ||
+                                    _chnInfo[a00].AccDataNow.Table[a0].NumAcc != 0)
                                 {
                                     int rt_3 = 0;
+
                                     {
-                                        //int* l63 = stackalloc int[0x40];
+                                        int* l63 = stackalloc int[0x40];
                                         for (int a1 = 0; a1 < 0x40; a1++) l63[a1] = 0;
 
                                         int dtmp0 = 0;
                                         for (int a1 = 0; a1 < _chnInfo[a00].AccDataNow.Table[a0].NumAcc; a1++)
                                         {
-                                            if (dtmp0 <= 0x20 + _chnInfo[a00].AccDataNow.Table[a0].Data0[a1])
+                                            if (dtmp0 <= 0x20 +
+                                                _chnInfo[a00].AccDataNow.Table[a0].Data0[a1])
                                             {
                                                 for (int a2 = dtmp0;
                                                     a2 < 0x20 + 0x1 +
@@ -945,9 +905,10 @@
                                         }
                                     }
 
-                                    if (_chnInfo[a00].AccTableNow.Table[a0].NumUk != 0 || _chnInfo[a00].AccTableOld.Table[a0].NumUk != 0)
+                                    if (_chnInfo[a00].AccTableNow.Table[a0].NumUk != 0 ||
+                                        _chnInfo[a00].AccTableOld.Table[a0].NumUk != 0)
                                     {
-                                        //float* l128 = stackalloc float[0x80];
+                                        float* l128 = stackalloc float[0x80];
 
                                         {
                                             MAPCDDF_makeL128(
@@ -983,7 +944,7 @@
                                     {
                                         // @TODO: Check
                                         int index1 = table_59e660[_chnInfo[0].JointChnInfo.Var9C];
-                                        //int index1 = table_59e660[chn_info[0].joint_chn_info.var9c % table_59e660.Length];
+                                        //int index1 = table_59e660[_chnInfo[0].JointChnInfo.Var9C % table_59e660.Length];
                                         l2080[a0][a1] +=
                                             Decoder_StaticData.MAPCDSD_table_static_0[index1 + a1] *
                                             tmpf0;
@@ -997,21 +958,12 @@
                             float[] buf_ctmp1 = _synBuf[a00];
 
                             float[] dst0 = _dstBuf[a00];
-
-                            //float* stmp140 = stackalloc float[0x10];
-
-                            //float* stmp30 = stackalloc float[0x100];
-
-                            //float* locals = stackalloc float[0x100];
-
-                            //float* calc_buf = stackalloc float[0x100];
-
                             for (int a0 = 0; a0 < 0x800; a0++) dst0[a0] = 0.0f;
 
                             for (int a0 = 0; a0 < 0x80; a0++)
                             {
-                                //float* stmp140 = stackalloc float[0x10];
-                                //float* stmp30 = stackalloc float[0x100];
+                                float* stmp140 = stackalloc float[0x10];
+                                float* stmp30 = stackalloc float[0x100];
 
                                 ulong atmp0 = 0x55555556;
                                 atmp0 *= (ulong)(a0 + _c900);
@@ -1055,11 +1007,11 @@
                                                        stmp30[0x8 + a1];
                                 }
 
-                                //float* locals = stackalloc float[0x100];
+                                float* locals = stackalloc float[0x100];
                                 locals[72] = stmp30[0] + stmp30[1] + stmp30[2] + stmp30[3];
                                 locals[72] *= 0.5f;
 
-                                //float* calc_buf = stackalloc float[0x100];
+                                float* calc_buf = stackalloc float[0x100];
                                 int calc_n = 0;
                                 calc_buf[++calc_n] = stmp30[0] - stmp30[1] - stmp30[2] + stmp30[3];
                                 calc_buf[calc_n] *= 0.7071068f;

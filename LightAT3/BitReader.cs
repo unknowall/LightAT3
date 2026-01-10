@@ -1,4 +1,4 @@
-﻿//#define BIT_READER_THREAD_SAFE
+﻿#define BIT_READER_THREAD_SAFE
 //#define DEBUG_BIT_READER
 
 using System;
@@ -89,7 +89,6 @@ namespace LightAT3
             }
         }
 
-        //
         public int GetWithI32Buffer(int bnum, bool getThenDelInBuf = true)
         {
             var value = _getWithI32Buffer(bnum, getThenDelInBuf);
@@ -99,7 +98,6 @@ namespace LightAT3
             return value;
         }
 
-        //
         private int _getWithI32Buffer(int bnum, bool getThenDelInBuf = true)
         {
 #if BIT_READER_THREAD_SAFE

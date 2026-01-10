@@ -51,6 +51,14 @@ namespace LightAT3
             return stream;
         }
 
+        public static SliceStream ReadStream(this Stream stream, long toRead = -1)
+        {
+            if (toRead == -1) toRead = stream.Available();
+            var readedStream = SliceStream.CreateWithLength(stream, stream.Position, toRead);
+            stream.Skip(toRead);
+            return readedStream;
+        }
+
         public static long Available(this Stream stream)
         {
             return stream.Length - stream.Position;
