@@ -9,7 +9,7 @@
         <TargetFramework>net8.0</TargetFramework>
         <Nullable>enable</Nullable>
         <Title>LightCodec</Title>
-        <Version>1.0.0</Version>
+        <Version>1.0.1</Version>
         <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
         <Authors>unknowall - sgfree@hotmail.com</Authors>
         <RepositoryUrl>https://github.com/unknowall/LightAT3</RepositoryUrl>
