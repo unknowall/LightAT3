@@ -2,6 +2,19 @@
 
 LightCodec is a lightweight ATRAC3/AT3plus/MP3/AAC audio decoder for .NET, designed to work without external dependencies like FFmpeg. 
 
+### Features
+ - Decode ATRAC3 audio format
+- Decode ATRAC3plus audio format
+- Decode MP3 audio format
+- Decode AAC audio format
+- Pure C# implementation - no external dependencies
+- No ffmpeg or other native libraries required
+
+### NuGet
+```bash
+    dotnet add package LightCodec-1.0.0
+```
+
 #### for PSP emulator
  - ScePSP - https://github.com/unknowall/ScePSP
 
