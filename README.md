@@ -5,7 +5,7 @@ LightCodec is a lightweight ATRAC3/AT3plus/MP3 audio decoder for .NET, designed 
 #### for PSP emulator
  - ScePSP - https://github.com/unknowall/ScePSP
 
-Example:
+#### Example:
 ```csharp
 using Lightcodec;
 ......
