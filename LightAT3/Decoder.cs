@@ -2,176 +2,178 @@
 
 namespace LightAT3
 {
-    public sealed class DecoderChnAccDataEntry
+    public sealed class DecoderChnACCData_Entry
     {
-        public int NumAcc;
-        public int[] Data0 = new int[7];
-        public uint[] Data1 = new uint[7];
-        public int AccNow;
-        public int[] Reserved = new int[0x16];
+        public int num_acc;
+        public int[] data0 = new int[7];
+        public uint[] data1 = new uint[7];
+        public int acc_now;
+        public int[] reserved = new int[0x16];
     }
 
-    public sealed class DecoderChnAccData
+    public sealed class DecoderChnACCData
     {
-        public DecoderChnAccDataEntry[] Table = CreateTable();
-        public DecoderPackTable0 Acc = new DecoderPackTable0();
+        public DecoderChnACCData_Entry[] table = CreateTable();
+        public DecoderPackTable0 acc = new DecoderPackTable0();
 
-        public static DecoderChnAccDataEntry[] CreateTable()
+        static public DecoderChnACCData_Entry[] CreateTable()
         {
-            return Enumerable.Range(0, 0x10).Select(index => new DecoderChnAccDataEntry()).ToArray();
+            return Enumerable.Range(0, 0x10).Select(Index => new DecoderChnACCData_Entry()).ToArray();
         }
 
-        public void TableMemset()
+        public void tableMemset()
         {
-            Table = CreateTable();
-        }
-    }
-
-    public sealed unsafe class DecoderChnAccTableTable
-    {
-        public int[] Unk = new int[8];
-        public int NumUk;
-        public ManagedPointer<DecoderChnAccTableData> Ptr0;
-    }
-
-    public sealed class DecoderChnAccTable
-    {
-        public DecoderChnAccTableInner Inner;
-        public DecoderChnAccTableTable[] Table = CreateTable();
-
-        public static DecoderChnAccTableTable[] CreateTable()
-        {
-            return Enumerable.Range(0, 0x10).Select(index => new DecoderChnAccTableTable()).ToArray();
-        }
-
-        public void TableReset()
-        {
-            Table = CreateTable();
+            table = CreateTable();
         }
     }
 
-    public sealed unsafe class DecoderChnInfo
+    unsafe public sealed class DecoderChnACCTableTable
     {
-        public int ChnFlag;
-        public DecoderJointChnInfo JointChnInfo = new DecoderJointChnInfo();
-        public DecoderChnAccData AccDataNow = new DecoderChnAccData();
-        public DecoderChnAccData AccDataOld = new DecoderChnAccData();
-        public DecoderChnAccTable AccTableOld = new DecoderChnAccTable();
-        public DecoderChnAccTable AccTableNow = new DecoderChnAccTable();
-        public DecoderChnInfo ChnRef;
-
-        public uint Var1034;
-        public uint[] CheckTable0 = new uint[0x20];
-
-        public int Table0FlagEx;
-        public int Table0FlagDataNum;
-        public uint Table0DataNum0;
-        public uint Table0DataNum1;
-
-        public int Uk1C718;
-        public int Uk1C714;
-
-        public uint Uk1B450;
-
-        public uint[] Table0 = new uint[0x20];
-        public uint[] Table1 = new uint[0x20];
-        public uint[] Table2 = new uint[0x20];
-        public short[] Table3 = new short[0x800];
-        public uint[] Table4 = new uint[0x10];
-
-        public uint[] InnerPackTable0CheckTable = new uint[0x10];
+        public int[] unk = new int[8];
+        public int num_uk;
+        public ManagedPointer<DecoderChnACCTableData> ptr0;
     }
 
-    public sealed class DecoderChnAccTableData
+    public sealed class DecoderChnACCTable
     {
-        public int Unk0;
-        public int Unk1;
-        public int Unk2;
-        public int Unk3;
+        public DecoderChnACCTableInner inner;
+        public DecoderChnACCTableTable[] table = CreateTable();
+
+        static public DecoderChnACCTableTable[] CreateTable()
+        {
+            return Enumerable.Range(0, 0x10).Select(Index => new DecoderChnACCTableTable()).ToArray();
+        }
+
+        public void tableReset()
+        {
+            table = CreateTable();
+        }
     }
 
-    public sealed class DecoderChnAccTableInner
+    unsafe public sealed class DecoderChnInfo
     {
-        public int Unk0;
-        public int Unk1;
-        public int Unk2;
-        public DecoderChnAccTableData[] Data = new DecoderChnAccTableData[0x30];
-        public ManagedPointer<DecoderChnAccTableData> PtrToUseNow;
-        public DecoderPackTable0 TableUnk0;
-        public DecoderPackTable0 TableUnk1;
-        public DecoderPackTable0 TableUnk2;
+        public int chn_flag;
+        public DecoderJointChnInfo joint_chn_info = new DecoderJointChnInfo();
+        public DecoderChnACCData acc_data_now = new DecoderChnACCData();
+        public DecoderChnACCData acc_data_old = new DecoderChnACCData();
+        public DecoderChnACCTable acc_table_old = new DecoderChnACCTable();
+        public DecoderChnACCTable acc_table_now = new DecoderChnACCTable();
+        public DecoderChnInfo chn_ref;
+
+        public uint var1034;
+        public uint[] check_table0 = new uint[0x20];
+
+        public int table0_flag_ex;
+        public int table0_flag_data_num;
+        public uint table0_data_num0;
+        public uint table0_data_num1;
+
+        public int uk1c718;
+        public int uk1c714;
+
+        public uint uk1b450;
+
+        public uint[] table0 = new uint[0x20];
+        public uint[] table1 = new uint[0x20];
+        public uint[] table2 = new uint[0x20];
+        public short[] table3 = new short[0x800];
+        public uint[] table4 = new uint[0x10];
+
+        public uint[] inner_pack_table0_check_table = new uint[0x10];
+    }
+
+    public sealed class DecoderChnACCTableData
+    {
+        public int unk0;
+        public int unk1;
+        public int unk2;
+        public int unk3;
+    }
+
+    public sealed class DecoderChnACCTableInner
+    {
+        public int unk0;
+        public int unk1;
+        public int unk2;
+        public DecoderChnACCTableData[] data = new DecoderChnACCTableData[0x30];
+        public ManagedPointer<DecoderChnACCTableData> ptr_to_use_now;
+        public DecoderPackTable0 table_unk0;
+        public DecoderPackTable0 table_unk1;
+        public DecoderPackTable0 table_unk2;
     }
 
     public sealed class DecoderPackTable0
     {
-        public int CheckData0;
-        public int CheckData1;
-        public int[] Data = new int[0x10];
+        public int check_data0;
+        public int check_data1;
+        public int[] data = new int[0x10];
     }
 
     public sealed class DecoderJointChnInfo
     {
-        public DecoderPackTable0 Table00 = new DecoderPackTable0();
-        public DecoderPackTable0 Table48 = new DecoderPackTable0();
+        public DecoderPackTable0 table00 = new DecoderPackTable0();
+        public DecoderPackTable0 table48 = new DecoderPackTable0();
 
-        public uint NumBandSplitedDeclared;
-        public uint NumBandSplitedUsed;
+        public uint num_band_splited_declared;
+        public uint num_band_splited_used;
 
-        public uint NumBandDeclared;
-        public uint NumBandUsed;
+        public uint num_band_declared;
+        public uint num_band_used;
 
-        public uint JointFlag;
-        public uint Chns;
+        public uint joint_flag;
+        public uint chns;
 
-        public uint Var90;
-        public int Var94;
-        public int Var98;
-        public int Var9C;
-        public int Var118;
-        public int[] Table11C = new int[0x100];
+        public uint var90;
+        public int var94;
+        public int var98;
+        public int var9c;
+        public int var118;
+        public int[] table11c = new int[0x100];
     }
 
     public sealed partial class Decoder
     {
-        DecoderChnInfo[] _chnInfo = new DecoderChnInfo[2];
+        DecoderChnInfo[] chn_info = new DecoderChnInfo[2];
 
-        float[][] _synBuf = { new float[0x1000], new float[0x1000] };
-        float[][] _dstBuf = { new float[0x800], new float[0x800] };
-        float[][] _kyouBuf = { new float[0x800], new float[0x800] };
-        int _c900;
+        float[][] kyou_buf = { new float[0x800], new float[0x800] };
 
         public Decoder()
         {
-            DecoderJointChnInfo jointChnInfo = new DecoderJointChnInfo();
+            for (int i = 0; i < 0x10; i++)
+            {
+                l2080_array[i] = new float[0x80];
+            }
 
-            DecoderChnAccTableInner inner0 = new DecoderChnAccTableInner();
-            DecoderChnAccTableInner inner1 = new DecoderChnAccTableInner();
+            DecoderJointChnInfo joint_chn_info = new DecoderJointChnInfo();
+
+            DecoderChnACCTableInner inner0 = new DecoderChnACCTableInner();
+            DecoderChnACCTableInner inner1 = new DecoderChnACCTableInner();
 
             for (int a0 = 0; a0 < 2; a0++)
             {
-                _chnInfo[a0] = new DecoderChnInfo();
+                chn_info[a0] = new DecoderChnInfo();
 
-                _chnInfo[a0].ChnFlag = a0;
-                _chnInfo[a0].JointChnInfo = jointChnInfo;
+                chn_info[a0].chn_flag = a0;
+                chn_info[a0].joint_chn_info = joint_chn_info;
 
-                _chnInfo[a0].AccDataOld = new DecoderChnAccData();
-                _chnInfo[a0].AccDataNow = new DecoderChnAccData();
-                _chnInfo[a0].AccTableOld = new DecoderChnAccTable();
-                _chnInfo[a0].AccTableOld.Inner = inner0;
+                chn_info[a0].acc_data_old = new DecoderChnACCData();
+                chn_info[a0].acc_data_now = new DecoderChnACCData();
+                chn_info[a0].acc_table_old = new DecoderChnACCTable();
+                chn_info[a0].acc_table_old.inner = inner0;
 
-                _chnInfo[a0].AccTableNow = new DecoderChnAccTable();
-                _chnInfo[a0].AccTableNow.Inner = inner1;
+                chn_info[a0].acc_table_now = new DecoderChnACCTable();
+                chn_info[a0].acc_table_now.inner = inner1;
 
-                _chnInfo[a0].ChnRef = _chnInfo[0];
+                chn_info[a0].chn_ref = chn_info[0];
             }
 
-            _c900 = 3;
+            c900 = 3;
 
             for (int a0 = 0; a0 < 2; a0++)
             {
                 for (int a1 = 0; a1 < 0x1000; a1++)
                 {
-                    _synBuf[a0][a1] = 0.0f;
+                    syn_buf[a0][a1] = 0.0f;
                 }
             }
 
@@ -179,7 +181,7 @@ namespace LightAT3
             {
                 for (int a1 = 0; a1 < 0x800; a1++)
                 {
-                    _kyouBuf[a0][a1] = 0.0f;
+                    kyou_buf[a0][a1] = 0.0f;
                 }
             }
         }
@@ -200,24 +202,24 @@ namespace LightAT3
         }
 
 
-        public int ParseStream(BitReader mbr0, uint chns, uint jointFlag)
+        public int parseStream(BitReader mbr0, uint chns, uint joint_flag)
         {
             int rs = 0;
 
-            _chnInfo[0].JointChnInfo.JointFlag = jointFlag;
-            _chnInfo[0].JointChnInfo.Chns = chns;
+            chn_info[0].joint_chn_info.joint_flag = joint_flag;
+            chn_info[0].joint_chn_info.chns = chns;
 
             while (true)
             {
-                if (0 != (rs = DecodeBandNum(mbr0, _chnInfo))) break;
-                if (0 != (rs = DecodeTable0(mbr0, _chnInfo, _chnInfo[0].JointChnInfo.Chns))) break;
-                if (0 != (rs = DecodeTable1(mbr0, _chnInfo, _chnInfo[0].JointChnInfo.Chns))) break;
-                if (0 != (rs = DecodeTable2(mbr0, _chnInfo, _chnInfo[0].JointChnInfo.Chns))) break;
-                if (0 != (rs = DecodeTable3(mbr0, _chnInfo, _chnInfo[0].JointChnInfo.Chns))) break;
-                if (0 != (rs = DecodeAcc2Pre(mbr0, _chnInfo, _chnInfo[0].JointChnInfo.Chns))) break;
-                if (0 != (rs = DecodeAcc2Main(mbr0, _chnInfo, _chnInfo[0].JointChnInfo.Chns))) break;
-                if (0 != (rs = DecodeAcc6Inner(mbr0, _chnInfo, _chnInfo[0].JointChnInfo.Chns))) break;
-                if (0 != (rs = DecodeTailInfo(mbr0, _chnInfo, _chnInfo[0].JointChnInfo.Chns))) break;
+                if (0 != (rs = decodeBandNum(mbr0, chn_info))) break;
+                if (0 != (rs = decodeTable0(mbr0, chn_info, chn_info[0].joint_chn_info.chns))) break;
+                if (0 != (rs = decodeTable1(mbr0, chn_info, chn_info[0].joint_chn_info.chns))) break;
+                if (0 != (rs = decodeTable2(mbr0, chn_info, chn_info[0].joint_chn_info.chns))) break;
+                if (0 != (rs = decodeTable3(mbr0, chn_info, chn_info[0].joint_chn_info.chns))) break;
+                if (0 != (rs = decodeACC2Pre(mbr0, chn_info, chn_info[0].joint_chn_info.chns))) break;
+                if (0 != (rs = decodeACC2Main(mbr0, chn_info, chn_info[0].joint_chn_info.chns))) break;
+                if (0 != (rs = decodeACC6Inner(mbr0, chn_info, chn_info[0].joint_chn_info.chns))) break;
+                if (0 != (rs = decodeTailInfo(mbr0, chn_info, chn_info[0].joint_chn_info.chns))) break;
 
                 break;
             }
@@ -226,84 +228,80 @@ namespace LightAT3
         }
 
 
-        int DecodeBandNum(BitReader mbr0, DecoderChnInfo[] chnInfos)
+        int decodeBandNum(BitReader mbr0, DecoderChnInfo[] chn_infos)
         {
-            chnInfos[0].JointChnInfo.NumBandSplitedDeclared =
-                (uint)mbr0.GetWithI32Buffer(5) + 1;
+            chn_infos[0].joint_chn_info.num_band_splited_declared =
+                (uint)mbr0.getWithI32Buffer(5) + 1;
 
 
-            chnInfos[0].JointChnInfo.NumBandDeclared =
-                (uint)Decoder_StaticData.MAPCDSD_band_num_table0[
-                    chnInfos[0].JointChnInfo.NumBandSplitedDeclared] + 1;
+            chn_infos[0].joint_chn_info.num_band_declared =
+                (uint)Decoder_StaticData.MAPCDSD_band_num_table0[chn_infos[0].joint_chn_info.num_band_splited_declared] + 1;
 
-            chnInfos[0].JointChnInfo.Var118 =
-                mbr0.GetWithI32Buffer(1);
+            chn_infos[0].joint_chn_info.var118 =
+                mbr0.getWithI32Buffer(1);
 
             return 0;
         }
 
-        int DecodeTable0(BitReader mbr0, DecoderChnInfo[] chnInfos, uint chns)
+        int decodeTable0(BitReader mbr0, DecoderChnInfo[] chn_infos, uint chns)
         {
             int rs = 0;
 
             for (uint a0 = 0; a0 < chns; a0++)
             {
                 for (uint a1 = 0; a1 < 0x20; a1++)
-                    chnInfos[a0].Table0[a1] = 0;
+                    chn_infos[a0].table0[a1] = 0;
 
-                if ((rs = MAPCDSF_decodeTable0_func_list0[chnInfos[a0].ChnFlag * 4 + mbr0.GetWithI32Buffer(2)]
-                        (mbr0, chnInfos[a0])
+                if ((rs = MAPCDSF_decodeTable0_func_list0[chn_infos[a0].chn_flag * 4 + mbr0.getWithI32Buffer(2)]
+                    (mbr0, chn_infos[a0])
                     ) != 0)
                     return rs;
             }
 
-            chnInfos[0].JointChnInfo.NumBandSplitedUsed =
-                chnInfos[0].JointChnInfo.NumBandSplitedDeclared; //[B0]
+            chn_infos[0].joint_chn_info.num_band_splited_used = chn_infos[0].joint_chn_info.num_band_splited_declared; //[B0]
 
             if (chns == 2)
             {
-                while (0 != chnInfos[0].JointChnInfo.NumBandSplitedUsed &&
-                       0 == chnInfos[0].Table0[chnInfos[0].JointChnInfo.NumBandSplitedUsed - 1] &&
-                       0 == chnInfos[1].Table0[chnInfos[0].JointChnInfo.NumBandSplitedUsed - 1])
-                    chnInfos[0].JointChnInfo.NumBandSplitedUsed--;
+                while ((0 != chn_infos[0].joint_chn_info.num_band_splited_used) &&
+                    (0 == chn_infos[0].table0[chn_infos[0].joint_chn_info.num_band_splited_used - 1]) &&
+                    (0 == chn_infos[1].table0[chn_infos[0].joint_chn_info.num_band_splited_used - 1]))
+                    chn_infos[0].joint_chn_info.num_band_splited_used--;
             }
             else
             {
-                while (0 != chnInfos[0].JointChnInfo.NumBandSplitedUsed &&
-                       0 == chnInfos[0].Table0[chnInfos[0].JointChnInfo.NumBandSplitedUsed - 1])
-                    chnInfos[0].JointChnInfo.NumBandSplitedUsed--;
+                while ((0 != chn_infos[0].joint_chn_info.num_band_splited_used) &&
+                    (0 == chn_infos[0].table0[chn_infos[0].joint_chn_info.num_band_splited_used - 1]))
+                    chn_infos[0].joint_chn_info.num_band_splited_used--;
             }
 
-            chnInfos[0].JointChnInfo.NumBandUsed =
-                (uint)Decoder_StaticData.MAPCDSD_band_num_table0[
-                    chnInfos[0].JointChnInfo.NumBandSplitedUsed] + 1;
+            chn_infos[0].joint_chn_info.num_band_used =
+                (uint)Decoder_StaticData.MAPCDSD_band_num_table0[chn_infos[0].joint_chn_info.num_band_splited_used] + 1;
 
             //check
             for (uint a0 = 0; a0 < chns; a0++)
             {
                 for (uint a1 = 0; a1 < 0x20; a1++)
                 {
-                    if (chnInfos[a0].Table0[a1] < 0 || chnInfos[a0].Table0[a1] >= 8) return -0x10B;
+                    if ((chn_infos[a0].table0[a1] < 0) || (chn_infos[a0].table0[a1] >= 8)) return -0x10B;
                 }
             }
 
             return rs;
         }
 
-        int DecodeTable1(BitReader mbr0, DecoderChnInfo[] chnInfos, uint chns)
+        int decodeTable1(BitReader mbr0, DecoderChnInfo[] chn_infos, uint chns)
         {
             int rs = 0;
 
-            if (chnInfos[0].JointChnInfo.NumBandSplitedUsed != 0) //
+            if (chn_infos[0].joint_chn_info.num_band_splited_used != 0) //
             {
                 for (uint a0 = 0; a0 < chns; a0++)
                 {
                     for (uint a1 = 0; a1 < 0x20; a1++)
-                        chnInfos[a0].Table1[a1] = 0;
+                        chn_infos[a0].table1[a1] = 0;
 
-                    if (0 != (rs = MAPCDSF_decodeTable1_func_list0[
-                                chnInfos[a0].ChnFlag * 4 + mbr0.GetWithI32Buffer(2)]
-                            (mbr0, chnInfos[a0])
+                    if (0 != (rs = MAPCDSF_decodeTable1_func_list0[chn_infos[a0].chn_flag * 4 + mbr0.getWithI32Buffer(2)]
+                        (mbr0, chn_infos[a0])
                         ))
                         return rs;
                 }
@@ -314,9 +312,9 @@ namespace LightAT3
             {
                 for (uint a1 = 0; a1 < 0x20; a1++)
                 {
-                    if (chnInfos[a0].Table1[a1] < 0 ||
-                        chnInfos[a0].Table1[a1] >= 0x40
-                    )
+                    if ((chn_infos[a0].table1[a1] < 0) ||
+                        (chn_infos[a0].table1[a1] >= 0x40)
+                        )
                         return -0x110;
                 }
             }
@@ -324,26 +322,25 @@ namespace LightAT3
             return rs;
         }
 
-        int DecodeTable2(BitReader mbr0, DecoderChnInfo[] chnInfos, uint chns)
+        int decodeTable2(BitReader mbr0, DecoderChnInfo[] chn_infos, uint chns)
         {
             int rs = 0;
 
-            if (chnInfos[0].JointChnInfo.NumBandSplitedUsed != 0) //
+            if (chn_infos[0].joint_chn_info.num_band_splited_used != 0) //
             {
-                chnInfos[0].JointChnInfo.Var90 = (uint)mbr0.GetWithI32Buffer(1); //[90] tmp4 [arg1]
+                chn_infos[0].joint_chn_info.var90 = (uint)mbr0.getWithI32Buffer(1);  //[90] tmp4 [arg1]
 
                 for (uint a0 = 0; a0 < chns; a0++)
                 {
                     for (uint a1 = 0; a1 < 0x20; a1++)
-                        chnInfos[a0].Table2[a1] = 0;
+                        chn_infos[a0].table2[a1] = 0;
 
-                    chnInfos[a0].Var1034 = (uint)mbr0.GetWithI32Buffer(1); //[1034] tmp5
+                    chn_infos[a0].var1034 = (uint)mbr0.getWithI32Buffer(1);  //[1034] tmp5
 
-                    MAPCDSF_makeTable0CheckTable(chnInfos[a0], chnInfos[a0].CheckTable0); //check
+                    MAPCDSF_makeTable0CheckTable(chn_infos[a0], chn_infos[a0].check_table0); //check
 
-                    if (0 != (rs = MAPCDSF_decodeTable2_func_list0[
-                                chnInfos[a0].ChnFlag * 4 + mbr0.GetWithI32Buffer(2)]
-                            (mbr0, chnInfos[a0])
+                    if (0 != (rs = MAPCDSF_decodeTable2_func_list0[chn_infos[a0].chn_flag * 4 + mbr0.getWithI32Buffer(2)]
+                        (mbr0, chn_infos[a0])
                         ))
                         return rs;
                 }
@@ -354,166 +351,161 @@ namespace LightAT3
             return rs;
         }
 
-        int DecodeTable3(BitReader mbr0, DecoderChnInfo[] chnInfos, uint chns)
+        int decodeTable3(BitReader mbr0, DecoderChnInfo[] chn_infos, uint chns)
         {
             int rs = 0;
 
             for (uint a0 = 0; a0 < chns; a0++)
             {
-                for (uint a1 = 0; a1 < 0x800; a1++) chnInfos[a0].Table3[a1] = 0;
-                for (uint a1 = 0; a1 < 0x5; a1++) chnInfos[a0].Table4[a1] = 0x0F;
+                for (uint a1 = 0; a1 < 0x800; a1++) chn_infos[a0].table3[a1] = 0;
+                for (uint a1 = 0; a1 < 0x5; a1++) chn_infos[a0].table4[a1] = 0x0F;
 
-                for (uint a1 = 0; a1 < chnInfos[0].JointChnInfo.NumBandSplitedUsed; a1++)
+                for (uint a1 = 0; a1 < chn_infos[0].joint_chn_info.num_band_splited_used; a1++)
                 {
-                    if (chnInfos[a0].Table0[a1] == 0)
+                    if (chn_infos[a0].table0[a1] == 0)
                     {
-                        for (uint a2 = 0; a2 < Decoder_StaticData.MAPCDSD_bind_table1[a1]; a2++)
-                            chnInfos[a0].Table3[Decoder_StaticData.MAPCDSD_bind_table0[a1] + a2] = 0;
+                        for (uint a2 = 0; a2 < Decoder_StaticData.MAPCDSD_bind_table1[a1]; a2++) chn_infos[a0].table3[Decoder_StaticData.MAPCDSD_bind_table0[a1] + a2] = 0;
                     }
                     else
                     {
                         uint atmp0 = 0;
 
-                        if (0 == chnInfos[a0].JointChnInfo.Var90)
-                            atmp0 = Decoder_StaticData.MAPCDSD_bind_table2[
-                                (chnInfos[a0].Var1034 * 7 + chnInfos[a0].Table0[a1]) * 4 +
-                                chnInfos[a0].Table2[a1]]; //tmp4 5 6
-                        else atmp0 = chnInfos[a0].Table2[a1];
+                        if (0 == chn_infos[a0].joint_chn_info.var90) atmp0 = Decoder_StaticData.MAPCDSD_bind_table2[(chn_infos[a0].var1034 * 7 + chn_infos[a0].table0[a1]) * 4 + chn_infos[a0].table2[a1]]; //tmp4 5 6
+                        else atmp0 = chn_infos[a0].table2[a1];
 
-                        DecoderSearchTableDes huffTableNow =
-                            Decoder_StaticData.MAPCDSD_huff_table3[
-                                (chnInfos[a0].Var1034 * 8 + atmp0) * 7 + chnInfos[a0].Table0[a1]]; //tmp5 6
+                        DecoderSearchTableDes huff_table_now = Decoder_StaticData.MAPCDSD_huff_table3[(chn_infos[a0].var1034 * 8 + atmp0) * 7 + chn_infos[a0].table0[a1]]; //tmp5 6
 
-                        MAPCDSF_decodeTable3Sub0(mbr0,
-                            chnInfos[a0].Table3
-                                .GetPointer((int)Decoder_StaticData.MAPCDSD_bind_table0[a1]),
-                            Decoder_StaticData.MAPCDSD_bind_table1[a1], huffTableNow);
+                        MAPCDSF_decodeTable3Sub0(mbr0, chn_infos[a0].table3.GetPointer((int)Decoder_StaticData.MAPCDSD_bind_table0[a1]), Decoder_StaticData.MAPCDSD_bind_table1[a1], huff_table_now);
                     }
                 }
 
-                if (chnInfos[0].JointChnInfo.NumBandSplitedUsed > 2)
+                if (chn_infos[0].joint_chn_info.num_band_splited_used > 2)
                 {
-                    for (uint a1 = 0;
-                        a1 < (uint)(Decoder_StaticData.MAPCDSD_band_num_table1[
-                                         Decoder_StaticData.MAPCDSD_band_num_table0[
-                                             chnInfos[0].JointChnInfo.NumBandSplitedUsed] + 1] + 1);
-                        a1++)
+                    for (uint a1 = 0; a1 < (uint)(Decoder_StaticData.MAPCDSD_band_num_table1[Decoder_StaticData.MAPCDSD_band_num_table0[chn_infos[0].joint_chn_info.num_band_splited_used] + 1] + 1); a1++)
                     {
-                        chnInfos[a0].Table4[a1] = (uint)mbr0.GetWithI32Buffer(4);
+                        chn_infos[a0].table4[a1] = (uint)mbr0.getWithI32Buffer(4);
                     }
                 }
             }
 
             if (chns == 2)
             {
-                MAPCDSF_readPackTable0(mbr0, chnInfos[0].JointChnInfo.Table48, chnInfos[0].JointChnInfo.NumBandUsed);
-                MAPCDSF_readPackTable0(mbr0, chnInfos[0].JointChnInfo.Table00, chnInfos[0].JointChnInfo.NumBandUsed);
+                MAPCDSF_readPackTable0(mbr0, (chn_infos[0].joint_chn_info.table48), chn_infos[0].joint_chn_info.num_band_used);
+                MAPCDSF_readPackTable0(mbr0, (chn_infos[0].joint_chn_info.table00), chn_infos[0].joint_chn_info.num_band_used);
             }
+
 
             return rs;
         }
 
-        int DecodeAcc2Pre(BitReader mbr0, DecoderChnInfo[] chnInfos, uint chns)
+        int decodeACC2Pre(BitReader mbr0, DecoderChnInfo[] chn_infos, uint chns)
         {
             int rs = 0;
 
             for (uint a0 = 0; a0 < chns; a0++)
             {
-                MAPCDSF_readPackTable0(mbr0, chnInfos[a0].AccDataNow.Acc, chnInfos[0].JointChnInfo.NumBandDeclared);
+                MAPCDSF_readPackTable0(mbr0, (chn_infos[a0].acc_data_now.acc), chn_infos[0].joint_chn_info.num_band_declared);
             }
 
             return rs;
         }
 
-        int DecodeAcc2Main(BitReader mbr0, DecoderChnInfo[] chnInfos, uint chns)
+        int decodeACC2Main(BitReader mbr0, DecoderChnInfo[] chn_infos, uint chns)
         {
             int rs = 0;
 
             for (uint a0 = 0; a0 < chns; a0++)
             {
-                chnInfos[a0].AccDataNow.TableMemset();
+                chn_infos[a0].acc_data_now.tableMemset();
 
-                uint uk1B444 = (uint)mbr0.GetWithI32Buffer(1);
+                uint uk1b444 = (uint)mbr0.getWithI32Buffer(1);
 
-                if (uk1B444 != 0)
+                if (uk1b444 != 0)
                 {
-                    chnInfos[a0].Uk1B450 = (uint)mbr0.GetWithI32Buffer(4) + 1;
-                    uint uk1B448 = (uint)mbr0.GetWithI32Buffer(1);
+                    chn_infos[a0].uk1b450 = (uint)mbr0.getWithI32Buffer(4) + 1;
+                    uint uk1b448 = (uint)mbr0.getWithI32Buffer(1);
 
-                    uint uk1B44C = chnInfos[a0].Uk1B450;
-                    if (uk1B448 != 0) uk1B44C = (uint)mbr0.GetWithI32Buffer(4) + 1;
+                    uint uk1b44c = chn_infos[a0].uk1b450;
+                    if (uk1b448 != 0) uk1b44c = (uint)mbr0.getWithI32Buffer(4) + 1;
 
                     //call 478200
-                    if ((rs = MAPCDSF_decodeACC2MainSub0(mbr0, chnInfos[a0])) != 0)
+                    if ((rs = MAPCDSF_decodeACC2MainSub0(mbr0, chn_infos[a0])) != 0)
                         break;
 
                     //call 478270
-                    if ((rs = MAPCDSF_decodeACC2MainSub1(mbr0, chnInfos[a0])) != 0)
+                    if ((rs = MAPCDSF_decodeACC2MainSub1(mbr0, chn_infos[a0])) != 0)
                         break;
 
                     //call 478330
-                    if ((rs = MAPCDSF_decodeACC2MainSub2(mbr0, chnInfos[a0])) != 0)
+                    if ((rs = MAPCDSF_decodeACC2MainSub2(mbr0, chn_infos[a0])) != 0)
                         break;
 
-                    if (uk1B448 != 0)
+                    if (uk1b448 != 0)
                     {
-                        for (uint b0 = chnInfos[a0].Uk1B450; b0 < uk1B44C; b0++)
+                        for (uint b0 = chn_infos[a0].uk1b450; b0 < uk1b44c; b0++)
                         {
-                            chnInfos[a0].AccDataNow.Table[b0].NumAcc = chnInfos[a0].AccDataNow.Table[b0 - 1].NumAcc;
-                            for (uint b1 = 0; b1 < (uint)chnInfos[a0].AccDataNow.Table[b0].NumAcc; b1++)
+                            chn_infos[a0].acc_data_now.table[b0].num_acc =
+                                chn_infos[a0].acc_data_now.table[b0 - 1].num_acc;
+                            for (uint b1 = 0; b1 < (uint)chn_infos[a0].acc_data_now.table[b0].num_acc; b1++)
                             {
-                                chnInfos[a0].AccDataNow.Table[b0].Data1[b1] = chnInfos[a0].AccDataNow.Table[b0 - 1].Data1[b1];
-                                chnInfos[a0].AccDataNow.Table[b0].Data0[b1] = chnInfos[a0].AccDataNow.Table[b0 - 1].Data0[b1];
+                                chn_infos[a0].acc_data_now.table[b0].data1[b1] =
+                                    chn_infos[a0].acc_data_now.table[b0 - 1].data1[b1];
+                                chn_infos[a0].acc_data_now.table[b0].data0[b1] =
+                                    chn_infos[a0].acc_data_now.table[b0 - 1].data0[b1];
                             }
                         }
                     }
                 }
-                else
-                {
-                    //uint uk1B44C = 0;
-                }
+                //else
+                //{
+                //	uint uk1b44c = 0;
+                //}
+
             }
 
             return rs;
         }
 
-        //extern MaiAT3PlusCoreDecoderSearchTableDes[] MAPCDSD_huff_table_global_11;
+        //extern DecoderSearchTableDes[] MAPCDSD_huff_table_global_11;
 
         static void Mai_memcpy<T>(out T dst, ref T src)
         {
             dst = src;
         }
 
-        static int DecodeAcc6Inner(BitReader mbr0, DecoderChnInfo[] chnInfos, uint chns)
+        static int decodeACC6Inner(BitReader mbr0, DecoderChnInfo[] chn_infos, uint chns)
         {
             int rs = 0;
 
             if (chns == 2)
             {
-                chnInfos[0].AccTableNow.Inner.TableUnk0 = new DecoderPackTable0();
-                chnInfos[0].AccTableNow.Inner.TableUnk1 = new DecoderPackTable0();
-                chnInfos[0].AccTableNow.Inner.TableUnk2 = new DecoderPackTable0();
+                chn_infos[0].acc_table_now.inner.table_unk0 = new DecoderPackTable0();
+                chn_infos[0].acc_table_now.inner.table_unk1 = new DecoderPackTable0();
+                chn_infos[0].acc_table_now.inner.table_unk2 = new DecoderPackTable0();
             }
 
             for (uint a0 = 0; a0 < chns; a0++)
             {
-                chnInfos[a0].AccTableNow.TableReset();
+                chn_infos[a0].acc_table_now.tableReset();
                 for (uint a1 = 0; a1 < 0x10; a1++)
                 {
-                    chnInfos[a0].AccTableNow.Table[a1].Unk[7] = 0x20;
-                    chnInfos[a0].AccTableNow.Table[a1].Unk[6] = 0;
+                    chn_infos[a0].acc_table_now.table[a1].unk[7] = 0x20;
+                    chn_infos[a0].acc_table_now.table[a1].unk[6] = 0;
                 }
             }
 
-            chnInfos[0].AccTableNow.Inner.PtrToUseNow = chnInfos[0].AccTableNow.Inner.Data;
+            chn_infos[0].acc_table_now.inner.ptr_to_use_now =
+                chn_infos[0].acc_table_now.inner.data;
 
-            chnInfos[0].AccTableNow.Inner.Unk0 =  mbr0.GetWithI32Buffer(1);
+            chn_infos[0].acc_table_now.inner.unk0 =
+                mbr0.getWithI32Buffer(1);
 
-            if (chnInfos[0].AccTableNow.Inner.Unk0 != 0)
+            if (chn_infos[0].acc_table_now.inner.unk0 != 0)
             {
-                chnInfos[0].AccTableNow.Inner.Unk1 =  mbr0.GetWithI32Buffer(1);
+                chn_infos[0].acc_table_now.inner.unk1 =
+                    mbr0.getWithI32Buffer(1);
 
-                chnInfos[0].AccTableNow.Inner.Unk2 = (int)(
+                chn_infos[0].acc_table_now.inner.unk2 = (int)(
                     MAPCDSF_getHuffValue(Decoder_StaticData.MAPCDSD_huff_table_global_11[0], mbr0)
                     + 1
                 );
@@ -521,36 +513,33 @@ namespace LightAT3
 
                 if (chns == 2)
                 {
-                    MAPCDSF_readPackTable0(mbr0, chnInfos[0].AccTableNow.Inner.TableUnk0,
-                        (uint)chnInfos[0].AccTableNow.Inner.Unk2);
-                    MAPCDSF_readPackTable0(mbr0, chnInfos[0].AccTableNow.Inner.TableUnk2,
-                        (uint)chnInfos[0].AccTableNow.Inner.Unk2);
-                    MAPCDSF_readPackTable0(mbr0, chnInfos[0].AccTableNow.Inner.TableUnk1,
-                        (uint)chnInfos[0].AccTableNow.Inner.Unk2);
+                    MAPCDSF_readPackTable0(mbr0, chn_infos[0].acc_table_now.inner.table_unk0, (uint)chn_infos[0].acc_table_now.inner.unk2);
+                    MAPCDSF_readPackTable0(mbr0, chn_infos[0].acc_table_now.inner.table_unk2, (uint)chn_infos[0].acc_table_now.inner.unk2);
+                    MAPCDSF_readPackTable0(mbr0, chn_infos[0].acc_table_now.inner.table_unk1, (uint)chn_infos[0].acc_table_now.inner.unk2);
                 }
 
                 for (uint a0 = 0; a0 < chns; a0++)
                 {
                     //call 477e60
-                    if ((rs = MAPCDSF_decodeACC6InnerSub0(mbr0, chnInfos[a0])) != 0)
+                    if ((rs = MAPCDSF_decodeACC6InnerSub0(mbr0, chn_infos[a0])) != 0)
                         break;
                 }
 
                 if (chns == 2)
                 {
-                    for (int a0 = 0; a0 < chnInfos[0].AccTableNow.Inner.Unk2; a0++)
+                    for (int a0 = 0; a0 < chn_infos[0].acc_table_now.inner.unk2; a0++)
                     {
-                        if (chnInfos[0].AccTableNow.Inner.TableUnk0.Data[a0] != 0)
+                        if (chn_infos[0].acc_table_now.inner.table_unk0.data[a0] != 0)
                         {
                             /*for (int a1 = 0; a1 < 0xA; a1++)
-                            {
-                                chn_infos[1].acc_table_now.table[a0].unk[a1] = 
-                                    chn_infos[0].acc_table_now.table[a0].unk[a1];
-                                //memcpy?
-                            }*/
+							{
+								chn_infos[1].acc_table_now.table[a0].unk[a1] = 
+									chn_infos[0].acc_table_now.table[a0].unk[a1];
+								//memcpy?
+							}*/
                             Mai_memcpy(
-                                out chnInfos[1].AccTableNow.Table[a0],
-                                ref chnInfos[0].AccTableNow.Table[a0]
+                                out chn_infos[1].acc_table_now.table[a0],
+                                ref chn_infos[0].acc_table_now.table[a0]
                             );
 
                             //left to right acc5 copy 0x10 + 0x28 * a0 0x4 add zumi
@@ -559,59 +548,58 @@ namespace LightAT3
                             //left to right acc5 copy 0x1C + 0x28 * a0 0x4 add zumi
                         }
 
-                        if (chnInfos[0].AccTableNow.Inner.TableUnk2.Data[a0] != 0)
+                        if (chn_infos[0].acc_table_now.inner.table_unk2.data[a0] != 0)
                         {
                             //swap?
-                            DecoderChnAccTableTable tmpbuf0;
+                            DecoderChnACCTableTable tmpbuf0;
 
                             Mai_memcpy(
                                 out tmpbuf0,
-                                ref chnInfos[1].AccTableNow.Table[a0]
+                                ref chn_infos[1].acc_table_now.table[a0]
                             );
 
                             Mai_memcpy(
-                                out chnInfos[1].AccTableNow.Table[a0],
-                                ref chnInfos[0].AccTableNow.Table[a0]
+                                out chn_infos[1].acc_table_now.table[a0],
+                                ref chn_infos[0].acc_table_now.table[a0]
                             );
 
                             Mai_memcpy(
-                                out chnInfos[0].AccTableNow.Table[a0],
+                                out chn_infos[0].acc_table_now.table[a0],
                                 ref tmpbuf0
                             );
                             /*
-                            int tmpbuf0[0xA];
-                            for (int a1 = 0; a1 < 0xA; a1++)
-                            {
-                                tmpbuf0[a1] = *(int*)&infos.acc_struct_6_1.table0[a0 * 0x28 + a1 * 0x4];
-                            }
-                            for (int a1 = 0; a1 < 0xA; a1++)
-                            {
-                                *(int*)&infos.acc_struct_6_1.table0[a0 * 0x28 + a1 * 0x4] = 
-                                    *(int*)&infos.acc_struct_6_0.table0[a0 * 0x28 + a1 * 0x4];
-                            }
-                            for (int a1 = 0; a1 < 0xA; a1++)
-                            {
-                                *(int*)&infos.acc_struct_6_0.table0[a0 * 0x28 + a1 * 0x4] = 
-                                    tmpbuf0[a1];
-                            }*/
+							int tmpbuf0[0xA];
+							for (int a1 = 0; a1 < 0xA; a1++)
+							{
+								tmpbuf0[a1] = *(int*)&infos.acc_struct_6_1.table0[a0 * 0x28 + a1 * 0x4];
+							}
+							for (int a1 = 0; a1 < 0xA; a1++)
+							{
+								*(int*)&infos.acc_struct_6_1.table0[a0 * 0x28 + a1 * 0x4] = 
+									*(int*)&infos.acc_struct_6_0.table0[a0 * 0x28 + a1 * 0x4];
+							}
+							for (int a1 = 0; a1 < 0xA; a1++)
+							{
+								*(int*)&infos.acc_struct_6_0.table0[a0 * 0x28 + a1 * 0x4] = 
+									tmpbuf0[a1];
+							}*/
                         }
                     }
                 }
             }
-
             return rs;
         }
 
-        int DecodeTailInfo(BitReader mbr0, DecoderChnInfo[] chnInfos, uint chns)
+        int decodeTailInfo(BitReader mbr0, DecoderChnInfo[] chn_infos, uint chns)
         {
             int rs = 0;
 
-            chnInfos[0].JointChnInfo.Var94 = mbr0.GetWithI32Buffer(1);
+            chn_infos[0].joint_chn_info.var94 = mbr0.getWithI32Buffer(1);
 
-            if (chnInfos[0].JointChnInfo.Var94 != 0)
+            if (chn_infos[0].joint_chn_info.var94 != 0)
             {
-                chnInfos[0].JointChnInfo.Var98 = mbr0.GetWithI32Buffer(4);
-                chnInfos[0].JointChnInfo.Var9C = mbr0.GetWithI32Buffer(4);
+                chn_infos[0].joint_chn_info.var98 = mbr0.getWithI32Buffer(4);
+                chn_infos[0].joint_chn_info.var9c = mbr0.getWithI32Buffer(4);
             }
 
             return rs;

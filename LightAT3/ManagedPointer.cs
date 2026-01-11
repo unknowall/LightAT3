@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-public static class ManagedPointerExtensions
+static public class ManagedPointerExtensions
 {
-    public static ManagedPointer<T> GetPointer<T>(this T[] This, int Offset)
+    static public ManagedPointer<T> GetPointer<T>(this T[] This, int Offset)
     {
         return new ManagedPointer<T>(This, Offset);
     }
 
-    public static ManagedPointer<T> GetPointer<T>(this ManagedPointer<T> This, int Offset)
+    static public ManagedPointer<T> GetPointer<T>(this ManagedPointer<T> This, int Offset)
     {
         return This.Slice(Offset);
     }
 }
 
-public unsafe class ManagedPointer<T>
+unsafe public class ManagedPointer<T>
 {
     private readonly T[] Container;
     private readonly int Offset;
@@ -31,35 +31,19 @@ public unsafe class ManagedPointer<T>
 
     private void CheckBounds(int Index)
     {
-        if (Index < 0 || Index >= Length) throw new IndexOutOfRangeException();
+        if (Index < 0 || Index >= Length) throw (new IndexOutOfRangeException());
     }
 
     public T this[int Index]
     {
-        get
-        {
-            CheckBounds(Index);
-            return Container[Offset + Index];
-        }
-        set
-        {
-            CheckBounds(Index);
-            Container[Offset + Index] = value;
-        }
+        get { CheckBounds(Index); return Container[Offset + Index]; }
+        set { CheckBounds(Index); Container[Offset + Index] = value; }
     }
 
     public T this[uint Index]
     {
-        get
-        {
-            CheckBounds((int)Index);
-            return Container[Offset + Index];
-        }
-        set
-        {
-            CheckBounds((int)Index);
-            Container[Offset + Index] = value;
-        }
+        get { CheckBounds((int)Index); return Container[Offset + Index]; }
+        set { CheckBounds((int)Index); Container[Offset + Index] = value; }
     }
 
     public static ManagedPointer<T> operator +(ManagedPointer<T> Left, int Right)

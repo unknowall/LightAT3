@@ -1,25 +1,25 @@
-﻿#define BIT_READER_THREAD_SAFE
+﻿//#define BIT_READER_THREAD_SAFE
 //#define DEBUG_BIT_READER
 
 using System;
 
 namespace LightAT3
 {
-    public sealed unsafe class BitReader : IDisposable
+    unsafe public sealed class BitReader : IDisposable
     {
         public const int MaiBitReaderTypeHigh = 0;
         public const int MaiBitReaderTypeLow = 1;
 
         Queue0 quene_in;
-        int _buffer;
-        int _bitsNum;
+        int buffer;
+        int bits_num;
         int type;
 
-        public BitReader(int byteBufSize, int type = MaiBitReaderTypeHigh)
+        public BitReader(int byte_buf_size, int type = MaiBitReaderTypeHigh)
         {
-            quene_in = new Queue0(byteBufSize);
-            _buffer = 0;
-            _bitsNum = 0;
+            quene_in = new Queue0(byte_buf_size);
+            buffer = 0;
+            bits_num = 0;
             this.type = type;
         }
 
@@ -33,21 +33,46 @@ namespace LightAT3
             }
         }
 
-        public bool MoreByte()
+        //public bool moreByte()
+        //{
+        //    if (quene_in.GetLength() != 0)
+        //    {
+        //        var temp = new byte[1];
+        //        quene_in.Out(temp, 1);
+        //        if (type == MaiBitReaderTypeHigh)
+        //        {
+        //            buffer = (buffer << 8) | (temp[0] & 0xFF);
+        //        }
+        //        else if (type == MaiBitReaderTypeLow)
+        //        {
+        //            buffer |= (temp[0] & 0xFF) << bits_num;
+        //        }
+        //        bits_num += 8;
+        //        return false;
+        //    }
+        //    else
+        //    {
+        //        return true;
+        //    }
+        //}
+
+        public bool moreByte()
         {
             if (quene_in.GetLength() != 0)
             {
                 var temp = new byte[1];
-                quene_in.Out(temp, 1);
+
+                quene_in.Out(new ManagedPointer<byte>(temp), 1);
+
                 if (type == MaiBitReaderTypeHigh)
                 {
-                    _buffer = (_buffer << 8) | (temp[0] & 0xFF);
+                    buffer = (buffer << 8) | (temp[0] & 0xFF);
                 }
                 else if (type == MaiBitReaderTypeLow)
                 {
-                    _buffer |= (temp[0] & 0xFF) << _bitsNum;
+                    buffer |= (temp[0] & 0xFF) << bits_num;
                 }
-                _bitsNum += 8;
+                bits_num += 8;
                 return false;
             }
             else
@@ -56,87 +81,88 @@ namespace LightAT3
             }
         }
 
-        public int AddData(byte* src, int lenS)
+        public int addData(byte* src, int len_s)
         {
-            int ret = _addData(src, lenS);
+            int ret = _addData(src, len_s);
 #if DEBUG_BIT_READER
 			Console.WriteLine("addData({0}) : {1}", len_s, BitConverter.ToString(src.GetArray(len_s)));
 #endif
             return ret;
         }
 
-        private int _addData(byte* src, int lenS)
+        private int _addData(byte* src, int len_s)
         {
 #if BIT_READER_THREAD_SAFE
 			lock (this)
 #endif
             {
-                quene_in.In(src, lenS);
+                quene_in.In(src, len_s);
             }
 
             return 0;
         }
 
-        public int GetRemainingBitsNum()
+        public int getRemainingBitsNum()
         {
 #if BIT_READER_THREAD_SAFE
 			lock (this)
 #endif
             {
-                int bitsRemain = (quene_in.GetLength() << 3) + _bitsNum;
+                int bits_remain = (quene_in.GetLength() << 3) + bits_num;
 
-                return bitsRemain;
+                return bits_remain;
             }
         }
 
-        public int GetWithI32Buffer(int bnum, bool getThenDelInBuf = true)
+        public int getWithI32Buffer(int bnum, bool get_then_del_in_buf = true)
         {
-            var value = _getWithI32Buffer(bnum, getThenDelInBuf);
+            var value = _getWithI32Buffer(bnum, get_then_del_in_buf);
 #if DEBUG_BIT_READER
 			Console.WriteLine("MaiBitReader.getWithI32Buffer({0}) : {1}", bnum, value);
 #endif
             return value;
         }
 
-        private int _getWithI32Buffer(int bnum, bool getThenDelInBuf = true)
+        private int _getWithI32Buffer(int bnum, bool get_then_del_in_buf = true)
         {
 #if BIT_READER_THREAD_SAFE
 			lock (this)
 #endif
             {
-                while (bnum > _bitsNum)
+
+                while (bnum > bits_num)
                 {
-                    if (MoreByte()) break;
+                    if (moreByte()) break;
                 }
 
-                if (bnum <= _bitsNum)
+                if (bnum <= bits_num)
                 {
-                    int toOut = 0;
+                    int to_out = 0;
 
                     if (type == MaiBitReaderTypeHigh)
                     {
-                        toOut = (_buffer >> (_bitsNum - bnum)) & ((1 << bnum) - 1);
+                        to_out = (buffer >> (bits_num - bnum)) & ((1 << bnum) - 1);
                     }
                     else if (type == MaiBitReaderTypeLow)
                     {
-                        toOut = _buffer & ((1 << bnum) - 1);
+                        to_out = buffer & ((1 << bnum) - 1);
                     }
 
-                    if (getThenDelInBuf)
+                    if (get_then_del_in_buf)
                     {
-                        _bitsNum -= bnum;
+                        bits_num -= bnum;
 
                         if (type == MaiBitReaderTypeHigh)
                         {
-                            _buffer = _buffer & ((1 << _bitsNum) - 1);
+                            buffer = buffer & ((1 << bits_num) - 1);
                         }
                         else if (type == MaiBitReaderTypeLow)
                         {
-                            _buffer = (_buffer >> bnum) & ((1 << _bitsNum) - 1);
+                            buffer = (buffer >> bnum) & ((1 << bits_num) - 1);
                         }
                     }
 
-                    return toOut;
+                    return to_out;
                 }
                 else
                 {

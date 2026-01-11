@@ -1,54 +1,45 @@
-﻿
-namespace LightAT3
+﻿namespace LightAT3
 {
-    public sealed unsafe class FrameDecoder
+    unsafe public sealed class FrameDecoder
     {
-        private readonly Decoder[] _cores = new Decoder[0x10];
-
-        private readonly short[] _sampleBuf = new short[0x8000];
-
-        private readonly short[] _sampleBufTmp = new short[0x8000];
-
+        private Decoder[] cores = new Decoder[0x10];
+        private short[] sample_buf = new short[0x800 * 2];
+        private short[] sample_buf_tmp = new short[0x8000];
         //int num_cores = 0;
 
-        public FrameDecoder()
-        {
-        }
-
-        public int DecodeFrame(byte* pFrameData, int dataLen, out int pChns, out short[] ppSampleBuf)
+        public int Decode(byte* p_frame_data, int data_len, out int p_chns, out short[] pp_sample_buf)
         {
             int rs = 0;
 
-            var mbr0 = new BitReader(dataLen + 0x10);
-            mbr0.AddData(pFrameData, dataLen);
-            var pad = stackalloc byte[0x10];
-            mbr0.AddData(pad, 0x10);
+            var mbr0 = new BitReader(data_len + 0x10);
+            mbr0.addData(p_frame_data, data_len);
+            var Pad = stackalloc byte[0x10];
+            mbr0.addData(Pad, 0x10);
 
-            if (mbr0.GetWithI32Buffer(1) != 0)
+            if (mbr0.getWithI32Buffer(1) != 0)
             {
                 rs = -1;
             }
 
-
-            int counterSubstream = 0;
-            int counterChn = 0;
+            int counter_substream = 0;
+            int counter_chn = 0;
             while (rs == 0)
             {
-                int substreamType = mbr0.GetWithI32Buffer(2);
-                uint jointFlag = 0;
+                int substream_type = mbr0.getWithI32Buffer(2);
+                uint joint_flag = 0;
                 uint chns = 0;
 
-                if (substreamType == 0)
+                if (substream_type == 0)
                 {
-                    jointFlag = 0;
+                    joint_flag = 0;
                     chns = 1;
                 }
-                else if (substreamType == 1)
+                else if (substream_type == 1)
                 {
-                    jointFlag = 1;
+                    joint_flag = 1;
                     chns = 2;
                 }
-                else if (substreamType == 3)
+                else if (substream_type == 3)
                 {
                     break;
                 }
@@ -57,33 +48,32 @@ namespace LightAT3
                     rs = -1;
                 }
 
-                if (_cores[counterSubstream] == null)
-                    _cores[counterSubstream] = new Decoder();
+                if (cores[counter_substream] == null)
+                    cores[counter_substream] = new Decoder();
 
-                if (0 != (rs = _cores[counterSubstream].ParseStream(mbr0, chns, jointFlag)))
+                if (0 != (rs = cores[counter_substream].parseStream(mbr0, chns, joint_flag)))
                     break;
 
-                if (0 != (rs = _cores[counterSubstream].decodeStream(chns)))
+                if (0 != (rs = cores[counter_substream].decodeStream(chns)))
                     break;
 
                 for (int a0 = 0; a0 < chns; a0++)
-                    _cores[counterSubstream].getAudioSamplesI16((uint)a0,
-                        new ManagedPointer<short>(_sampleBufTmp, 0x800 * counterChn++));
+                    cores[counter_substream].getAudioSamplesI16((uint)a0, new ManagedPointer<short>(sample_buf_tmp, 0x800 * (counter_chn++)));
 
-                counterSubstream++;
+                counter_substream++;
             }
 
             for (int a0 = 0; a0 < 0x800; a0++)
             {
-                for (int a1 = 0; a1 < counterChn; a1++)
+                for (int a1 = 0; a1 < counter_chn; a1++)
                 {
-                    _sampleBuf[a0 * counterChn + a1] = _sampleBufTmp[a1 * 0x800 + a0];
+                    sample_buf[a0 * counter_chn + a1] = sample_buf_tmp[a1 * 0x800 + a0];
                 }
             }
             mbr0.Dispose();
 
-            pChns = counterChn;
-            ppSampleBuf = _sampleBuf;
+            p_chns = counter_chn;
+            pp_sample_buf = sample_buf;
 
             return rs;
         }

@@ -7,7 +7,7 @@ using System.Text;
 #pragma warning disable CS8600
 #pragma warning disable CS8605
 
-namespace LightAT3
+namespace LightCodec
 {
 
     public static class StreamExtensions
