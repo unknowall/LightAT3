@@ -598,7 +598,7 @@ namespace LightCodec.atrac3
                 }
                 else
                 {
-                    Array.Fill(snd.imdctBuf, 0f, 0, 512);
+                    Arrays.Fill(snd.imdctBuf, 0, 512, 0f);
                 }
 
                 // gain compensation and overlapping

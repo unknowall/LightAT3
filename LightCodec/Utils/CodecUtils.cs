@@ -13,7 +13,8 @@ namespace LightCodec.Utils
 
         private static short convertSampleFloatToInt16(float sample)
         {
-            return (short)(Math.Min(Math.Max((int)(sample * 32768f + 0.5f), -32768), 32767) & 0xFFFF);
+            //return (short)(Math.Min(Math.Max((int)(sample * 32768f + 0.5f), -32768), 32767) & 0xFFFF);
+            return (short)Math.Round(Math.Clamp(sample, -1.0f, 1.0f) * 32767.0f);
         }
 
         public static unsafe void writeOutput(float[][] samples, short* output, int numberOfSamples, int decodedChannels, int outputChannels)

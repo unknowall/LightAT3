@@ -1,4 +1,8 @@
-﻿using SDL2;
+﻿//#define DECODETOFILE
+
+using LightCodec;
+using LightCodec.Utils;
+using SDL2;
 using System;
 using System.Collections.Concurrent;
 using System.IO;
@@ -9,13 +13,9 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using static SDL2.SDL;
 
-using LightCodec;
-
 #pragma warning disable CS8618
 #pragma warning disable CS8625
 #pragma warning disable CS0649
-
-//#define DECODETOFILE
 
 class Program
 {
@@ -36,30 +36,11 @@ class Program
             Console.Error.WriteLine("Couldn't initialize SDL");
             return;
         }
-
-        audioCallbackDelegate = AudioCallback;
-
-        SDL_AudioSpec desired = new SDL_AudioSpec
-        {
-            channels = 2,
-            format = AUDIO_S16,
-            freq = 44100,
-            samples = 1024,
-            callback = audioCallbackDelegate,
-            userdata = IntPtr.Zero
-
-        };
-        SDL_AudioSpec obtained = new SDL_AudioSpec();
-
-        audiodeviceid = SDL_OpenAudioDevice(null, 0, ref desired, out obtained, 0);
-
-        if (audiodeviceid != 0)
-            SDL_PauseAudioDevice(audiodeviceid, 0);
 #endif
         string Fn;
 
         if (args.Length < 1)
-            Fn = "./Demo.at3+";
+            Fn = "./Demo.at3";
         else
             Fn = args[0];
 
@@ -79,9 +60,31 @@ class Program
     }
 
 #if !DECODETOFILE
+    public static void SetSDLAudio(ushort samples = 2048)
+    {
+        audioCallbackDelegate = AudioCallback;
+
+        SDL_AudioSpec desired = new SDL_AudioSpec
+        {
+            channels = 2,
+            format = AUDIO_S16,
+            freq = 44100,
+            samples = samples,
+            callback = audioCallbackDelegate,
+            userdata = IntPtr.Zero
+
+        };
+        SDL_AudioSpec obtained = new SDL_AudioSpec();
+
+        audiodeviceid = SDL_OpenAudioDevice(null, 0, ref desired, out obtained, 0);
+
+        if (audiodeviceid != 0)
+            SDL_PauseAudioDevice(audiodeviceid, 0);
+    }
+
     private unsafe static void AudioCallback(IntPtr userdata, IntPtr stream, int len)
     {
-        int requiredSamples = len / sizeof(short);
+        int requiredSamples = len;
         var streamSpan = new Span<short>((void*)stream, requiredSamples);
         streamSpan.Fill(0);
 
@@ -216,10 +219,13 @@ class Program
             }
 
             byte[] Data = new byte[BlockSize];
-            byte[] _byteBuffer = new byte[AudioBuf.Length * 2];
+            byte[] byteBuffer = new byte[BlockSize * 2];
             int rs, len = 0 , FrameIdx = 0;
 #if DECODETOFILE
             MemoryStream WaveStream = new MemoryStream();
+            //FileStream WaveStream = new FileStream("at3.bin", FileMode.Create, FileAccess.Write, FileShare.None, BlockSize * 2, FileOptions.WriteThrough);
+#else
+            SetSDLAudio((ushort)Codec.NumberOfSamples);
 #endif
             Codec.init(BlockSize, Format.Channels, Format.Channels, 0);
 
@@ -227,7 +233,7 @@ class Program
 
             while (!DataStream.Eof())
             {
-                DataStream.Read(Data, 0, Data.Length);
+                DataStream.Read(Data, 0, BlockSize);
 
                 len = 0;
                 FrameIdx++;
@@ -251,10 +257,10 @@ class Program
                     Console.WriteLine($"decode ERROR.");
                 }
 #if DECODETOFILE
-                int byteLen = len * sizeof(short);
-                if (byteLen > _byteBuffer.Length) _byteBuffer = new byte[byteLen];
-                Buffer.BlockCopy(AudioBuf, 0, _byteBuffer, 0, byteLen);
-                WaveStream.Write(_byteBuffer, 0, byteLen);
+                if (len > byteBuffer.Length) byteBuffer = new byte[len];
+                Buffer.BlockCopy(AudioBuf, 0, byteBuffer, 0, len);
+                WaveStream.Write(byteBuffer, 0, len);
+                //WaveStream.Flush(true);
 #else
                 lock (BufferLock)
                 {
@@ -278,8 +284,11 @@ class Program
 #endif
             }
 #if DECODETOFILE
-            SaveWaveFile(WaveStream, "./out.wav");
+            SaveWaveFile(WaveStream, "./demo.wav");
+            WaveStream.Close();
 #endif
+            DataStream.Close();
+            stream.Close();
             return 1;
         }
     }
