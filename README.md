@@ -1,45 +1,47 @@
-## Lightweight ATRAC3/AT3plus/MP3/AAC decoder for .NET
+## LightCodec - Lightweight ATRAC3/AT3plus/MP3/AAC decoder for .NET
 
-LightCodec is a lightweight ATRAC3/AT3plus/MP3/AAC audio decoder for .NET, designed to work without external dependencies like FFmpeg. 
+LightCodec is a lightweight ATRAC3/AT3plus/MP3/AAC audio decoder for .NET, designed to work without external dependencies like FFmpeg.
 
-### Features
- - Decode ATRAC3 audio format
-- Decode ATRAC3plus audio format
-- Decode MP3 audio format
-- Decode AAC audio format
-- Pure C# implementation - no external dependencies
-- No ffmpeg or other native libraries required
+## Features
+- Decode ATRAC3/AT3plus/MP3/AAC audio formats
+- Pure C# implementation with no external dependencies
+- No FFmpeg or native libraries required
 
+## Installation
 ### NuGet
 ```bash
-    dotnet add package LightCodec-1.0.0
+dotnet add package LightCodec
 ```
 
-#### for PSP emulator
- - ScePSP - https://github.com/unknowall/ScePSP
+## Related Projects
+- [ScePSP](https://github.com/unknowall/ScePSP): A PSP emulator project that uses this decoder
 
-#### Example:
+## Demo
+- [Demo Project](https://github.com/unknowall/LightAT3/tree/master/Demo)
+
+## Usage Example
 ```csharp
 using Lightcodec;
-......
-ILightCodec Codec;
-byte[] Data = new byte[Format.BytesPerFrame];
-short[] AudioBuf = new short[8192];
-
-Codec = CodecFactory.Get(AudioCodec.AT3plus);
-Codec.init(Format.BytesPerFrame, Format.Channels, Format.Channels, 0);
-
+ILightCodec codec;
+byte[] data = new byte[Format.BytesPerFrame];
+short[] audioBuf = new short[8192];
+codec = CodecFactory.Get(AudioCodec.AT3plus);
+codec.init(Format.BytesPerFrame, Format.Channels, Format.Channels, 0);
 while (!DataStream.Eof())
 {
-	DataStream.Read(Data, 0, Format.BytesPerFrame);
-	len = 0;
-	fixed (byte* Ptr = Data)
-	{
-		fixed (short* OutPtr = AudioBuf)
-		{
-			rs = Codec.decode(Ptr, Format.BytesPerFrame, OutPtr, out len);
-		}
-		......
-	}
+    DataStream.Read(data, 0, Format.BytesPerFrame);
+    int len = 0;
+    fixed (byte* ptr = data)
+    {
+        fixed (short* outPtr = audioBuf)
+        {
+            int result = codec.decode(ptr, Format.BytesPerFrame, outPtr, out len);
+        }
+    }
 }
 ```
+## Contributing
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## License
+This project is licensed under the GPL-2.0 license.
