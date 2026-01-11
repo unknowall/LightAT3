@@ -1,10 +1,11 @@
 ﻿
+using static LightCodec.atrac3plus.Atrac3plusData2;
+using Atrac3plusData2 = LightCodec.atrac3plus.Atrac3plusData2;
+
 namespace LightCodec.atrac3plus
 {
     public class Channel
     {
-        public const int ATRAC3P_SUBBANDS = 16; //< number of PQF subbands
-
         public int chNum;
         public int numCodedVals; //< number of transmitted quant unit values
         public int fillMode;

@@ -3,19 +3,18 @@ using static System.Math;
 
 namespace LightCodec.mp3
 {
-    using LightCodec.util;
+    using LightCodec.Utils;
     using static LightCodec.mp3.Mp3Data;
     using static LightCodec.mp3.Mp3Dsp;
-    using BitBuffer = LightCodec.util.BitBuffer;
-    using BitReader = LightCodec.util.BitReader;
-    using CodecUtils = LightCodec.util.CodecUtils;
-    using FloatDSP = LightCodec.util.FloatDSP;
+    using BitBuffer = LightCodec.Utils.BitBuffer;
+    using BitReader = LightCodec.Utils.BitReader;
+    using CodecUtils = LightCodec.Utils.CodecUtils;
+    using FloatDSP = LightCodec.Utils.FloatDSP;
     using HuffTable = LightCodec.mp3.Mp3Data.HuffTable;
-    using VLC = LightCodec.util.VLC;
+    using VLC = LightCodec.Utils.VLC;
 
-    public class Mp3Decoder : ICodec
+    public class Mp3Decoder : ILightCodec
     {
-        //public static Logger log = Logger.getLogger("mp3");
         public const int MP3_ERROR = -3;
         private const int HEADER_SIZE = 4;
         public const int BACKSTEP_SIZE = 512;
@@ -79,7 +78,7 @@ namespace LightCodec.mp3
                 scale_factor_mult[i][2] = (int)(norm * 0.6299605249f * 2.0f);
             }
 
-            Mp3Dsp.synthInit(Mp3Dsp.mpa_synth_window);
+            Mp3Dsp.synthInit(mpa_synth_window);
 
             // Huffman decode tables
             for (int i = 1; i < 16; i++)
@@ -679,7 +678,7 @@ namespace LightCodec.mp3
                 bb.skip(bitsLeft);
             }
 
-            Array.Fill(g.sbHybrid, sIndex, 576, 0);
+            Arrays.Fill(g.sbHybrid, sIndex, 576, 0f);
         }
 
         private void computeStereo(Granule g0, Granule g1)
@@ -847,8 +846,6 @@ namespace LightCodec.mp3
                 return;
             }
 
-            //JAVA TO C# CONVERTER WARNING: The original Java variable was marked 'sealed override':
-            //ORIGINAL LINE: sealed override float tmp[] = new float[576];
             float[] tmp = new float[576];
             int ptr;
             if (g.switchPoint != 0)

@@ -1,22 +1,13 @@
-﻿using static LightCodec.util.CodecUtils;
-using BitReader = LightCodec.util.BitReader;
-using FFT = LightCodec.util.FFT;
+﻿using static LightCodec.Utils.CodecUtils;
+using BitReader = LightCodec.Utils.BitReader;
+using FFT = LightCodec.Utils.FFT;
+using static LightCodec.atrac3plus.Atrac3plusData2;
+using Atrac3plusData2 = LightCodec.atrac3plus.Atrac3plusData2;
 
 namespace LightCodec.atrac3plus
 {
-    public class Atrac3plusDecoder : ICodec
+    public class Atrac3plusDecoder : ILightCodec
     {
-        public const int AT3P_ERROR = -1;
-        public const int CH_UNIT_MONO = 0; //< unit containing one coded channel
-        public const int CH_UNIT_STEREO = 1; //< unit containing two jointly-coded channels
-        public const int CH_UNIT_EXTENSION = 2; //< unit containing extension information
-        public const int CH_UNIT_TERMINATOR = 3; //< unit sequence terminator
-        public const int ATRAC3P_POWER_COMP_OFF = 15; //< disable power compensation
-        public const int ATRAC3P_SUBBANDS = 16; //< number of PQF subbands
-        public const int ATRAC3P_SUBBAND_SAMPLES = 128; //< number of samples per subband
-        public static readonly int ATRAC3P_FRAME_SAMPLES = ATRAC3P_SUBBANDS * ATRAC3P_SUBBAND_SAMPLES;
-        public const int ATRAC3P_PQF_FIR_LEN = 12; //< Length of the prototype FIR of the PQF
-
         private Context ctx;
 
         public virtual int init(int bytesPerFrame, int channels, int outputChannels, int codingMode)

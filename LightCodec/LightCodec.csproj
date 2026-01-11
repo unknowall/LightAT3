@@ -17,7 +17,7 @@
         <PackageReadmeFile>README-EN.md</PackageReadmeFile>
         <Copyright>unknowall - sgfree@hotmail.com</Copyright>
         <PackageProjectUrl>https://github.com/unknowall/LightAT3</PackageProjectUrl>
-        <PackageTags>atrac3;atrac3plus;decoder;audio;aac</PackageTags>
+        <PackageTags>atrac3;atrac3plus;decoder;audio;aac;mp3</PackageTags>
         <AssemblyName>LightCodec</AssemblyName>
         <PackageLicenseExpression>GPL-2.0-or-later</PackageLicenseExpression>
         <PackageId>LightCodec</PackageId>

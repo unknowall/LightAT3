@@ -1,9 +1,9 @@
-﻿using LightCodec.util;
+﻿using LightCodec.Utils;
 using static LightCodec.mp3.Mp3Decoder;
 
 namespace LightCodec.mp3
 {
-    using BitReader = LightCodec.util.BitReader;
+    using BitReader = LightCodec.Utils.BitReader;
 
     public class Context
     {

@@ -1,7 +1,7 @@
-﻿using LightCodec.util;
+﻿using LightCodec.Utils;
 using Atrac = LightCodec.atrac3plus.Atrac;
-using BitReader = LightCodec.util.BitReader;
-using FFT = LightCodec.util.FFT;
+using BitReader = LightCodec.Utils.BitReader;
+using FFT = LightCodec.Utils.FFT;
 
 namespace LightCodec.atrac3
 {

@@ -1,7 +1,7 @@
-﻿//using AacDecoder = LightCodec.aac.AacDecoder;
-using Atrac3Decoder = LightCodec.atrac3.Atrac3Decoder;
-using Atrac3plusDecoder = LightCodec.atrac3plus.Atrac3plusDecoder;
-using Mp3Decoder = LightCodec.mp3.Mp3Decoder;
+﻿using LightCodec.aac;
+using LightCodec.atrac3;
+using LightCodec.atrac3plus;
+using LightCodec.mp3;
 
 namespace LightCodec
 {
@@ -13,7 +13,7 @@ namespace LightCodec
         MP3 = 3,
     }
 
-    public class NullCodec : ICodec
+    public class NullCodec : ILightCodec
     {
         public int NumberOfSamples => 0;
 
@@ -32,9 +32,9 @@ namespace LightCodec
 
     public class CodecFactory
     {
-        public static ICodec Get(AudioCodec codecType)
+        public static ILightCodec Get(AudioCodec codecType)
         {
-            ICodec? codec = new NullCodec();
+            ILightCodec codec = new NullCodec();
 
             switch (codecType)
             {
@@ -48,7 +48,7 @@ namespace LightCodec
                     codec = new Mp3Decoder();
                     break;
                 case AudioCodec.AAC:
-                    //codec = new AacDecoder();
+                    codec = new AacDecoder();
                     break;
             }
 

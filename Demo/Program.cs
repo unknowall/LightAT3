@@ -9,26 +9,28 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using static SDL2.SDL;
 
-//using FFmpeg.AutoGen;
-
 using LightCodec;
-using LightCodec.atrac3plus;
 
 #pragma warning disable CS8618
 #pragma warning disable CS8625
 #pragma warning disable CS0649
 
+//#define DECODETOFILE
+
 class Program
 {
+#if !DECODETOFILE
     private static uint audiodeviceid;
     private static SDL.SDL_AudioCallback audioCallbackDelegate;
     private static short[] CurrentPcm;
     private static int CurrentPlayPos = 0, CurrentPcmLength = 0;
     private static readonly object BufferLock = new object();
+#endif
 
     [STAThreadAttribute]
     private static void Main(string[] args)
     {
+#if !DECODETOFILE
         if (SDL.SDL_Init(SDL.SDL_INIT_AUDIO) != 0)
         {
             Console.Error.WriteLine("Couldn't initialize SDL");
@@ -42,7 +44,7 @@ class Program
             channels = 2,
             format = AUDIO_S16,
             freq = 44100,
-            samples = 2048,
+            samples = 1024,
             callback = audioCallbackDelegate,
             userdata = IntPtr.Zero
 
@@ -53,23 +55,21 @@ class Program
 
         if (audiodeviceid != 0)
             SDL_PauseAudioDevice(audiodeviceid, 0);
-
-        //ffdecode();
-
+#endif
         string Fn;
 
         if (args.Length < 1)
-            Fn = "./Demo.at3";
+            Fn = "./Demo.at3+";
         else
             Fn = args[0];
 
-        Player player = new Player();
-        FileStream stream = new FileStream(Fn, FileMode.Open, FileAccess.Read);
         int ret = -1;
+
+        Player player = new Player();
 
         Task.Factory.StartNew(() =>
         {
-            ret = player.Play(stream);
+            ret = player.Play(Fn);
         });
 
         while (ret == -1)
@@ -78,6 +78,7 @@ class Program
         }
     }
 
+#if !DECODETOFILE
     private unsafe static void AudioCallback(IntPtr userdata, IntPtr stream, int len)
     {
         int requiredSamples = len / sizeof(short);
@@ -97,33 +98,25 @@ class Program
             }
         }
     }
+#endif
 
     public unsafe class Player
     {
-        public At3FormatStruct Format;
+        FileStream stream;
+        public FmtStruct Format;
         public FactStruct Fact;
         public SmplStruct Smpl;
         public LoopInfoStruct[] LoopInfoList;
         public SliceStream DataStream;
+        public static short[] AudioBuf = new short[8192];
 
-        //public FrameDecoder Decoder = new FrameDecoder();
+        static ILightCodec Codec;
 
-        static ICodec Codec;
-        static MemoryStream WaveStream;
-
-        public static short[] pBuf;
-
-        public string ReadString(Stream stream, int length, int offset = 0)
+        public int Play(string Fn)
         {
-            var buffer = new byte[length];
-            stream.Seek(offset, SeekOrigin.Current);
-            stream.Read(buffer, 0, length);
-            return Encoding.ASCII.GetString(buffer);
-        }
+            stream = new FileStream(Fn, FileMode.Open, FileAccess.Read);
 
-        public int Play(Stream stream)
-        {
-            var strt = ReadString(stream, 4);
+            var strt = stream.ReadString(4);
 
             if (strt != "RIFF")
             {
@@ -135,7 +128,7 @@ class Program
             var RiffSize = new BinaryReader(stream).ReadUInt32();
             var RiffStream = stream.ReadStream(RiffSize);
 
-            strt = ReadString(RiffStream, 4);
+            strt = RiffStream.ReadString(4);
 
             if (strt != "WAVE")
             {
@@ -143,16 +136,20 @@ class Program
                 return 0;
             }
 
-            while (!RiffStream.Eof())
+            bool HasData = false;
+            uint HeadSize = 0;
+            while (!RiffStream.Eof() && !HasData)
             {
-                var ChunkType = ReadString(RiffStream, 4);
+                var ChunkType = RiffStream.ReadString(4);
+                HeadSize += 4;
                 var ChunkSize = new BinaryReader(RiffStream).ReadUInt32();
+                HeadSize += ChunkSize;
                 var ChunkStream = RiffStream.ReadStream(ChunkSize);
 
                 switch (ChunkType)
                 {
                     case "fmt ":
-                        Format = ChunkStream.ReadStructPartially<At3FormatStruct>();
+                        Format = ChunkStream.ReadStructPartially<FmtStruct>();
                         Console.WriteLine($"Format: {Format.CompressionCode} Bitrate {Format.Bitrate} BlockSize {Format.BlockSize} BytesPerSecond {Format.AverageBytesPerSecond}");
                         continue;
 
@@ -164,7 +161,7 @@ class Program
                         Smpl = ChunkStream.ReadStructPartially<SmplStruct>();
                         LoopInfoList = ChunkStream.ReadStructVector<LoopInfoStruct>(Smpl.LoopCount);
 
-                        Console.WriteLine($"AT3 smpl: {Smpl.LoopCount}");
+                        //Console.WriteLine($"AT3 smpl: {Smpl.LoopCount}");
                         foreach (var LoopInfo in LoopInfoList)
                             Console.WriteLine($"Loop: StartSample {LoopInfo.StartSample} EndSample {LoopInfo.EndSample} " +
                                 $"PlayCount {LoopInfo.PlayCount} Type {LoopInfo.Type} Fraction {LoopInfo.Fraction}");
@@ -172,23 +169,40 @@ class Program
                         continue;
 
                     case "data":
-                        this.DataStream = ChunkStream;
+                        DataStream = ChunkStream;
+                        HeadSize -= ChunkSize;
+                        HasData = true;
                         break;
 
                     default:
                         Console.WriteLine($"Can't handle chunk '{ChunkType}'");
+                        if (RiffSize - ChunkStream.Available() < 0x100) continue;
                         return 0;
                 }
             }
 
-            //SaveWaveStreamToFile(DataStream, "./Data.bin", false);
+            //DataStream.CopyToFile("./Data.bin");
 
             DataStream.Position = 0;
+
+            var BlockSize = Format.BlockSize;
+            if (BlockSize <= 0)
+            {
+                Console.WriteLine("BlockSize <= 0");
+                return 0;
+            }
+
+            if (DataStream.Available() < BlockSize)
+            {
+                Console.WriteLine("EndOfData {0} < {1}", DataStream.Available(), BlockSize);
+                return 0;
+            }
 
             switch (Format.CompressionCode)
             {
                 case CompressionCode.Atrac3:
                     Codec = CodecFactory.Get(AudioCodec.AT3);
+                    BlockSize = Format.BytesPerFrame;
                     break;
                 case CompressionCode.Atrac3Plus:
                     Codec = CodecFactory.Get(AudioCodec.AT3plus);
@@ -201,68 +215,53 @@ class Program
                     return 0;
             }
 
-            var BlockSize = this.Format.BlockSize;
+            byte[] Data = new byte[BlockSize];
+            byte[] _byteBuffer = new byte[AudioBuf.Length * 2];
+            int rs, len = 0 , FrameIdx = 0;
+#if DECODETOFILE
+            MemoryStream WaveStream = new MemoryStream();
+#endif
+            Codec.init(BlockSize, Format.Channels, Format.Channels, 0);
 
-            if (BlockSize <= 0)
-            {
-                Console.WriteLine("BlockSize <= 0");
-                return 0;
-            }
-
-            if (this.DataStream.Available() < BlockSize)
-            {
-                Console.WriteLine("EndOfData {0} < {1}", this.DataStream.Available(), BlockSize);
-                return 0;
-            }
-
-            var Data = new byte[BlockSize];
-            short[] pBuf = new short[8192];
-            byte[] _byteBuffer = new byte[pBuf.Length * 2];
-            int rs, len = 0;
-
-            WaveStream = new MemoryStream();
-
-            Codec.init(BlockSize, Format.AtracChannels, Format.AtracChannels, 0);
+            Console.WriteLine();
 
             while (!DataStream.Eof())
             {
-                this.DataStream.Read(Data, 0, Data.Length);
+                DataStream.Read(Data, 0, Data.Length);
 
+                len = 0;
+                FrameIdx++;
                 fixed (byte* Ptr = Data)
                 {
-                    fixed (short* OutPtr = pBuf)
+                    fixed (short* OutPtr = AudioBuf)
                     {
-                        len = 0;
                         rs = Codec.decode(Ptr, BlockSize, OutPtr, out len);
-                        //rs = Decoder.Decode(Ptr, BlockSize, out int chs, out short[] pbuf);
-                        //len = (int)pbuf.Length;
-                        if (rs > 0)
-                        {
-                            Console.WriteLine($"decode Read {rs} Out {len}");
-                        }
-                        if (rs == 0)
-                        {
-                            Console.WriteLine($"decode DONE.");
-                        }
-                        if (rs < 0)
-                        {
-                            Console.WriteLine($"decode ERROR.");
-                        }
                     }
                 }
-
-                //int byteLen = len * sizeof(short);
-                //if (byteLen > _byteBuffer.Length) _byteBuffer = new byte[byteLen];
-                //Buffer.BlockCopy(pBuf, 0, _byteBuffer, 0, byteLen);
-                //WaveStream.Write(_byteBuffer, 0, byteLen);
-
+                if (rs > 0)
+                {
+                    Console.Write($"\rFrame {FrameIdx} decode Read {rs} Out {len}");
+                }
+                if (rs == 0)
+                {
+                    Console.WriteLine($"decode DONE.");
+                }
+                if (rs < 0)
+                {
+                    Console.WriteLine($"decode ERROR.");
+                }
+#if DECODETOFILE
+                int byteLen = len * sizeof(short);
+                if (byteLen > _byteBuffer.Length) _byteBuffer = new byte[byteLen];
+                Buffer.BlockCopy(AudioBuf, 0, _byteBuffer, 0, byteLen);
+                WaveStream.Write(_byteBuffer, 0, byteLen);
+#else
                 lock (BufferLock)
                 {
-                    CurrentPcm = pBuf;
+                    CurrentPcm = AudioBuf;
                     CurrentPcmLength = len;
                     CurrentPlayPos = 0;
                 }
-
                 while (true)
                 {
                     bool finished;
@@ -276,10 +275,11 @@ class Program
 
                     Thread.Sleep(1);
                 }
+#endif
             }
-
-            //SaveWaveStreamToFile(WaveStream, "./out.wav");
-
+#if DECODETOFILE
+            SaveWaveFile(WaveStream, "./out.wav");
+#endif
             return 1;
         }
     }
@@ -316,7 +316,7 @@ class Program
         BitConverter.GetBytes(dataChunkSize).CopyTo(wavHeader, 40);
     }
 
-    static void SaveWaveStreamToFile(Stream waveStream, string filePath, bool Head = true)
+    static void SaveWaveFile(Stream waveStream, string filePath)
     {
         BuildWavHeader((int)waveStream.Length / 2);
 
@@ -324,7 +324,7 @@ class Program
 
         using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, FileOptions.WriteThrough))
         {
-            if (Head) fs.Write(wavHeader, 0, wavHeader.Length);
+            fs.Write(wavHeader, 0, wavHeader.Length);
 
             byte[] buffer = new byte[4096];
             int readLen;
@@ -337,124 +337,6 @@ class Program
             fs.Flush(true);
         }
     }
-
-    //static unsafe void ffdecode()
-    //{
-    //    ffmpeg.RootPath = @"D:\Tools\ffmpeg-8.0.1-full_build-shared\bin";
-    //    ffmpeg.av_log_set_level(ffmpeg.AV_LOG_ERROR);
-
-    //    string inputFile = "./demo.at3";
-    //    AVFormatContext* formatCtx = null;
-    //    if (ffmpeg.avformat_open_input(&formatCtx, inputFile, null, null) < 0)
-    //    {
-    //        Console.WriteLine("无法打开文件");
-    //        return;
-    //    }
-
-    //    AVCodec* codec;
-    //    int streamIndex = ffmpeg.av_find_best_stream(formatCtx, AVMediaType.AVMEDIA_TYPE_AUDIO, -1, -1, &codec, 0);
-    //    if (streamIndex < 0) { Console.WriteLine("无法找到流"); return; }
-
-    //    AVStream* stream = formatCtx->streams[streamIndex];
-    //    AVCodecContext* codecCtx = ffmpeg.avcodec_alloc_context3(codec);
-
-    //    if (ffmpeg.avcodec_parameters_to_context(codecCtx, stream->codecpar) < 0) { Console.WriteLine("无法复制参数"); return; }
-    //    if (ffmpeg.avcodec_open2(codecCtx, codec, null) < 0) { Console.WriteLine("无法打开解码器"); return; }
-
-    //    SwrContext* swrCtx = ffmpeg.swr_alloc();
-    //    AVChannelLayout src_ch_layout = codecCtx->ch_layout;
-    //    AVChannelLayout dst_ch_layout = new AVChannelLayout();
-    //    ffmpeg.av_channel_layout_default(&dst_ch_layout, codecCtx->ch_layout.nb_channels);
-
-    //    ffmpeg.swr_alloc_set_opts2(&swrCtx,
-    //        &dst_ch_layout, AVSampleFormat.AV_SAMPLE_FMT_S16, codecCtx->sample_rate,
-    //        &src_ch_layout, codecCtx->sample_fmt, codecCtx->sample_rate,
-    //        0, null);
-    //    ffmpeg.swr_init(swrCtx);
-
-    //    AVPacket pkt = new AVPacket();
-    //    AVFrame* frame = ffmpeg.av_frame_alloc();
-
-    //    byte* dstBuffer = null;
-    //    int dstLinesize = 0;
-    //    int currentDstBufferSize = 0;
-
-    //    Console.WriteLine("开始解码...");
-
-    //    while (ffmpeg.av_read_frame(formatCtx, &pkt) >= 0)
-    //    {
-    //        if (pkt.stream_index != streamIndex) continue;
-
-    //        ffmpeg.avcodec_send_packet(codecCtx, &pkt);
-
-    //        while (ffmpeg.avcodec_receive_frame(codecCtx, frame) >= 0)
-    //        {
-    //            int max_dst_nb_samples = (int)ffmpeg.av_rescale_rnd(frame->nb_samples, dst_ch_layout.nb_channels, src_ch_layout.nb_channels, AVRounding.AV_ROUND_UP);
-
-    //            int requiredSize = ffmpeg.av_samples_get_buffer_size(&dstLinesize, dst_ch_layout.nb_channels, max_dst_nb_samples, AVSampleFormat.AV_SAMPLE_FMT_S16, 1);
-
-    //            if (requiredSize > currentDstBufferSize)
-    //            {
-    //                if (dstBuffer != null) ffmpeg.av_free((void*)dstBuffer);
-
-    //                dstBuffer = (byte*)ffmpeg.av_malloc((ulong)requiredSize);
-    //                currentDstBufferSize = requiredSize;
-    //                Console.WriteLine($"重新分配缓冲区: {requiredSize} 字节");
-    //            }
-
-    //            for (uint ch = 0; ch < 2; ch++)
-    //            {
-    //                Console.Write($"Ch {ch}: ");
-
-    //                float* channelSamples = (float*)frame->data[ch];
-
-    //                for (int i = 0; i < 10; i++)
-    //                {
-    //                    if (i < frame->nb_samples)
-    //                    {
-    //                        float val = channelSamples[i];
-    //                        Console.Write($"{val:F8}  ");
-    //                    }
-    //                }
-    //                Console.WriteLine();
-    //            }
-
-    //            int out_samples = ffmpeg.swr_convert(swrCtx, &dstBuffer, max_dst_nb_samples, (byte**)&frame->data, frame->nb_samples);
-
-    //            if (out_samples <= 0) continue;
-
-    //            int outDataSize = out_samples * dst_ch_layout.nb_channels * sizeof(short);
-
-    //            short[] correctPcm = new short[out_samples * dst_ch_layout.nb_channels];
-    //            fixed (short* p = correctPcm)
-    //            {
-    //                Buffer.MemoryCopy(dstBuffer, p, (uint)outDataSize, (uint)outDataSize);
-    //            }
-
-    //            lock (BufferLock)
-    //            {
-    //                CurrentPcm = correctPcm;
-    //                CurrentPcmLength = correctPcm.Length;
-    //                CurrentPlayPos = 0;
-    //            }
-
-    //            while (true)
-    //            {
-    //                bool finished;
-    //                lock (BufferLock) { finished = CurrentPlayPos >= CurrentPcmLength; }
-    //                if (finished) break;
-    //                Thread.Sleep(1);
-    //            }
-    //        }
-    //        ffmpeg.av_packet_unref(&pkt);
-    //    }
-
-    //    if (dstBuffer != null) ffmpeg.av_free((void*)dstBuffer);
-    //    ffmpeg.swr_free(&swrCtx);
-    //    ffmpeg.av_frame_free(&frame);
-    //    ffmpeg.avcodec_free_context(&codecCtx);
-    //    ffmpeg.avformat_close_input(&formatCtx);
-    //}
 
     public struct UshortLe
     {
@@ -546,7 +428,7 @@ class Program
     }
 
     [StructLayout(LayoutKind.Explicit)]
-    public unsafe struct At3FormatStruct
+    public unsafe struct FmtStruct
     {
         /// <summary>
         /// 01 00 - For Uncompressed PCM (linear quntization)
@@ -557,7 +439,7 @@ class Program
         /// <summary>
         /// 02 00       - Stereo
         /// </summary>
-        [FieldOffset(0x0002)] public ushort AtracChannels;
+        [FieldOffset(0x0002)] public ushort Channels;
 
         /// <summary>
         /// 44 AC 00 00 - 44100

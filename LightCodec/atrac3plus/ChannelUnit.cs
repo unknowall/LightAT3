@@ -1,66 +1,22 @@
-﻿using System;
+﻿using LightCodec.Utils;
+using System;
 using static LightCodec.atrac3plus.Atrac3plusData1;
 using static LightCodec.atrac3plus.Atrac3plusData2;
 using static LightCodec.atrac3plus.Atrac3plusDsp;
-using static LightCodec.util.CodecUtils;
+using static LightCodec.Utils.CodecUtils;
 using Atrac3pSpecCodeTab = LightCodec.atrac3plus.Atrac3plusData1.Atrac3pSpecCodeTab;
-using BitReader = LightCodec.util.BitReader;
-using VLC = LightCodec.util.VLC;
+using BitReader = LightCodec.Utils.BitReader;
+using VLC = LightCodec.Utils.VLC;
+using Atrac3plusData2 = LightCodec.atrac3plus.Atrac3plusData2;
 
 namespace LightCodec.atrac3plus
 {
-    /*
-	 * Based on the FFmpeg version from Maxim Poliakovski.
-	 * All credits go to him.
-	 */
     public class ChannelUnit
     {
-        public const int AT3P_ERROR = -1;
-        public const int CH_UNIT_MONO = 0; //< unit containing one coded channel
-        public const int CH_UNIT_STEREO = 1; //< unit containing two jointly-coded channels
-        public const int CH_UNIT_EXTENSION = 2; //< unit containing extension information
-        public const int CH_UNIT_TERMINATOR = 3; //< unit sequence terminator
-        public const int ATRAC3P_POWER_COMP_OFF = 15; //< disable power compensation
-        public const int ATRAC3P_SUBBANDS = 16; //< number of PQF subbands
-        public const int ATRAC3P_SUBBAND_SAMPLES = 128; //< number of samples per subband
-        public static readonly int ATRAC3P_FRAME_SAMPLES = ATRAC3P_SUBBANDS * ATRAC3P_SUBBAND_SAMPLES;
-        public const int ATRAC3P_PQF_FIR_LEN = 12; //< Length of the prototype FIR of the PQF
-
         public ChannelUnitContext ctx = new ChannelUnitContext();
         private BitReader br;
         private Atrac3plusDsp dsp;
         private int numChannels;
-
-        private static readonly VLC[] wl_vlc_tabs = new VLC[4];
-        private static readonly VLC[] sf_vlc_tabs = new VLC[8];
-        private static readonly VLC[] ct_vlc_tabs = new VLC[4];
-        private static readonly VLC[] spec_vlc_tabs = new VLC[112];
-        private static readonly VLC[] gain_vlc_tabs = new VLC[11];
-        private static readonly VLC[] tone_vlc_tabs = new VLC[7];
-
-        private static readonly int[] wl_nb_bits = new int[] { 2, 3, 5, 5 };
-        private static readonly int[] wl_nb_codes = new int[] { 3, 5, 8, 8 };
-        private static readonly int[][] wl_bits = new int[][] { Atrac3plusData2.atrac3p_wl_huff_bits1, Atrac3plusData2.atrac3p_wl_huff_bits2, Atrac3plusData2.atrac3p_wl_huff_bits3, Atrac3plusData2.atrac3p_wl_huff_bits4 };
-        private static readonly int[][] wl_codes = new int[][] { Atrac3plusData2.atrac3p_wl_huff_code1, Atrac3plusData2.atrac3p_wl_huff_code2, Atrac3plusData2.atrac3p_wl_huff_code3, Atrac3plusData2.atrac3p_wl_huff_code4 };
-        private static readonly int[][] wl_xlats = new int[][] { Atrac3plusData2.atrac3p_wl_huff_xlat1, Atrac3plusData2.atrac3p_wl_huff_xlat2, null, null };
-
-        private static readonly int[] ct_nb_bits = new int[] { 3, 4, 4, 4 };
-        private static readonly int[] ct_nb_codes = new int[] { 4, 8, 8, 8 };
-        private static readonly int[][] ct_bits = new int[][] { Atrac3plusData2.atrac3p_ct_huff_bits1, Atrac3plusData2.atrac3p_ct_huff_bits2, Atrac3plusData2.atrac3p_ct_huff_bits2, Atrac3plusData2.atrac3p_ct_huff_bits3 };
-        private static readonly int[][] ct_codes = new int[][] { Atrac3plusData2.atrac3p_ct_huff_code1, Atrac3plusData2.atrac3p_ct_huff_code2, Atrac3plusData2.atrac3p_ct_huff_code2, Atrac3plusData2.atrac3p_ct_huff_code3 };
-        private static readonly int[][] ct_xlats = new int[][] { null, null, Atrac3plusData2.atrac3p_ct_huff_xlat1, null };
-
-        private static readonly int[] sf_nb_bits = new int[] { 9, 9, 9, 9, 6, 6, 7, 7 };
-        private static readonly int[] sf_nb_codes = new int[] { 64, 64, 64, 64, 16, 16, 16, 16 };
-        private static readonly int[][] sf_bits = new int[][] { Atrac3plusData2.atrac3p_sf_huff_bits1, Atrac3plusData2.atrac3p_sf_huff_bits1, Atrac3plusData2.atrac3p_sf_huff_bits2, Atrac3plusData2.atrac3p_sf_huff_bits3, Atrac3plusData2.atrac3p_sf_huff_bits4, Atrac3plusData2.atrac3p_sf_huff_bits4, Atrac3plusData2.atrac3p_sf_huff_bits5, Atrac3plusData2.atrac3p_sf_huff_bits6 };
-        private static readonly int[][] sf_codes = new int[][] { Atrac3plusData2.atrac3p_sf_huff_code1, Atrac3plusData2.atrac3p_sf_huff_code1, Atrac3plusData2.atrac3p_sf_huff_code2, Atrac3plusData2.atrac3p_sf_huff_code3, Atrac3plusData2.atrac3p_sf_huff_code4, Atrac3plusData2.atrac3p_sf_huff_code4, Atrac3plusData2.atrac3p_sf_huff_code5, Atrac3plusData2.atrac3p_sf_huff_code6 };
-        private static readonly int[][] sf_xlats = new int[][] { Atrac3plusData2.atrac3p_sf_huff_xlat1, Atrac3plusData2.atrac3p_sf_huff_xlat2, null, null, Atrac3plusData2.atrac3p_sf_huff_xlat4, Atrac3plusData2.atrac3p_sf_huff_xlat5, null, null };
-
-        private static readonly int[][] gain_cbs = new int[][] { Atrac3plusData2.atrac3p_huff_gain_npoints1_cb, Atrac3plusData2.atrac3p_huff_gain_npoints1_cb, Atrac3plusData2.atrac3p_huff_gain_lev1_cb, Atrac3plusData2.atrac3p_huff_gain_lev2_cb, Atrac3plusData2.atrac3p_huff_gain_lev3_cb, Atrac3plusData2.atrac3p_huff_gain_lev4_cb, Atrac3plusData2.atrac3p_huff_gain_loc3_cb, Atrac3plusData2.atrac3p_huff_gain_loc1_cb, Atrac3plusData2.atrac3p_huff_gain_loc4_cb, Atrac3plusData2.atrac3p_huff_gain_loc2_cb, Atrac3plusData2.atrac3p_huff_gain_loc5_cb };
-        private static readonly int[][] gain_xlats = new int[][] { null, Atrac3plusData2.atrac3p_huff_gain_npoints2_xlat, Atrac3plusData2.atrac3p_huff_gain_lev1_xlat, Atrac3plusData2.atrac3p_huff_gain_lev2_xlat, Atrac3plusData2.atrac3p_huff_gain_lev3_xlat, Atrac3plusData2.atrac3p_huff_gain_lev4_xlat, Atrac3plusData2.atrac3p_huff_gain_loc3_xlat, Atrac3plusData2.atrac3p_huff_gain_loc1_xlat, Atrac3plusData2.atrac3p_huff_gain_loc4_xlat, Atrac3plusData2.atrac3p_huff_gain_loc2_xlat, Atrac3plusData2.atrac3p_huff_gain_loc5_xlat };
-
-        private static readonly int[][] tone_cbs = new int[][] { Atrac3plusData2.atrac3p_huff_tonebands_cb, Atrac3plusData2.atrac3p_huff_numwavs1_cb, Atrac3plusData2.atrac3p_huff_numwavs2_cb, Atrac3plusData2.atrac3p_huff_wav_ampsf1_cb, Atrac3plusData2.atrac3p_huff_wav_ampsf2_cb, Atrac3plusData2.atrac3p_huff_wav_ampsf3_cb, Atrac3plusData2.atrac3p_huff_freq_cb };
-        private static readonly int[][] tone_xlats = new int[][] { null, null, Atrac3plusData2.atrac3p_huff_numwavs2_xlat, Atrac3plusData2.atrac3p_huff_wav_ampsf1_xlat, Atrac3plusData2.atrac3p_huff_wav_ampsf2_xlat, Atrac3plusData2.atrac3p_huff_wav_ampsf3_xlat, Atrac3plusData2.atrac3p_huff_freq_xlat };
 
         public static int signExtend(int value, int bits)
         {
@@ -678,7 +634,7 @@ namespace LightCodec.atrac3plus
         {
             for (int chNum = 0; chNum < numChannels; chNum++)
             {
-                Array.Fill(ctx.channels[chNum].quWordlen, 0);
+                Arrays.Fill(ctx.channels[chNum].quWordlen, 0);
 
                 int ret = decodeChannelWordlen(chNum);
                 if (ret < 0)
@@ -711,7 +667,7 @@ namespace LightCodec.atrac3plus
 
             for (int chNum = 0; chNum < numChannels; chNum++)
             {
-                Array.Fill(ctx.channels[chNum].quSfIdx, 0);
+                Arrays.Fill(ctx.channels[chNum].quSfIdx, 0);
 
                 int ret = decodeChannelSfIdx(chNum);
                 if (ret < 0)
@@ -878,7 +834,7 @@ namespace LightCodec.atrac3plus
 
             for (int chNum = 0; chNum < numChannels; chNum++)
             {
-                Array.Fill(ctx.channels[chNum].quTabIdx, 0);
+                Arrays.Fill(ctx.channels[chNum].quTabIdx, 0);
 
                 int ret = decodeChannelCodeTab(chNum);
                 if (ret < 0)
@@ -938,9 +894,9 @@ namespace LightCodec.atrac3plus
             {
                 Channel chan = ctx.channels[chNum];
 
-                Array.Fill(chan.spectrum, 0);
+                Arrays.Fill(chan.spectrum, 0);
 
-                Array.Fill(chan.powerLevs, ATRAC3P_POWER_COMP_OFF);
+                Arrays.Fill(chan.powerLevs, ATRAC3P_POWER_COMP_OFF);
 
                 for (int qu = 0; qu < ctx.usedQuantUnits; qu++)
                 {
@@ -1743,8 +1699,6 @@ namespace LightCodec.atrac3plus
         {
             WavesData[] dst = ctx.channels[chNum].tonesInfo;
             WavesData[] @ref = ctx.channels[0].tonesInfo;
-            //JAVA TO C# CONVERTER WARNING: The original Java variable was marked 'sealed override':
-            //ORIGINAL LINE: sealed override int refwaves[] = new int[48];
             int[] refwaves = new int[48];
 
             if (chNum > 0)
@@ -1936,8 +1890,6 @@ namespace LightCodec.atrac3plus
 
             for (int chNum = 0; chNum < numChannels; chNum++)
             {
-                //JAVA TO C# CONVERTER WARNING: The original Java variable was marked 'sealed override':
-                //ORIGINAL LINE: sealed override bool bandHasTones[] = new bool[16];
                 bool[] bandHasTones = new bool[16];
                 for (int i = 0; i < ctx.wavesInfo.numToneBands; i++)
                 {
@@ -2007,7 +1959,7 @@ namespace LightCodec.atrac3plus
             for (int ch = 0; ch < numChannels; ch++)
             {
                 // clear channel's residual spectrum
-                Array.Fill(@out[ch], 0, ATRAC3P_FRAME_SAMPLES, 0);
+                Arrays.Fill(@out[ch], 0, ATRAC3P_FRAME_SAMPLES, 0f);
 
                 for (int qu = 0; qu < ctx.usedQuantUnits; qu++)
                 {
@@ -2070,8 +2022,8 @@ namespace LightCodec.atrac3plus
                 }
 
                 // zero unused subbands in both output and overlapping buffers
-                Array.Fill(ctx.prevBuf[ch], ctx.numSubbands * ATRAC3P_SUBBAND_SAMPLES, ctx.prevBuf[ch].Length, 0);
-                Array.Fill(at3pContext.timeBuf[ch], ctx.numSubbands * ATRAC3P_SUBBAND_SAMPLES, at3pContext.timeBuf[ch].Length, 0);
+                Arrays.Fill(ctx.prevBuf[ch], ctx.numSubbands * ATRAC3P_SUBBAND_SAMPLES, ctx.prevBuf[ch].Length, 0f);
+                Arrays.Fill(at3pContext.timeBuf[ch], ctx.numSubbands * ATRAC3P_SUBBAND_SAMPLES, at3pContext.timeBuf[ch].Length, 0f);
 
                 // resynthesize and add tonal signal
                 if (ctx.wavesInfo.tonesPresent || ctx.wavesInfoPrev.tonesPresent)

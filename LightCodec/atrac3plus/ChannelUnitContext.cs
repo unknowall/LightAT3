@@ -1,12 +1,11 @@
-﻿using LightCodec.util;
+﻿using LightCodec.Utils;
+using static LightCodec.atrac3plus.Atrac3plusData2;
+using Atrac3plusData2 = LightCodec.atrac3plus.Atrac3plusData2;
 
 namespace LightCodec.atrac3plus
 {
     public class ChannelUnitContext
     {
-        public const int ATRAC3P_SUBBANDS = 16; //< number of PQF subbands
-        public const int ATRAC3P_PQF_FIR_LEN = 12; //< Length of the prototype FIR of the PQF
-
         // Channel unit variables
         public int unitType; //< unit type (mono/stereo)
         public int numQuantUnits;
@@ -29,7 +28,7 @@ namespace LightCodec.atrac3plus
 
         public IPQFChannelContext[] ipqfCtx = new IPQFChannelContext[2];
 
-        public float[][] prevBuf = RectangularArrays.ReturnRectangularFloatArray(2, Atrac3plusDecoder.ATRAC3P_FRAME_SAMPLES); //< overlapping buffer
+        public float[][] prevBuf = RectangularArrays.ReturnRectangularFloatArray(2, ATRAC3P_FRAME_SAMPLES); //< overlapping buffer
 
         public class IPQFChannelContext
         {

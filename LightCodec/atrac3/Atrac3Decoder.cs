@@ -1,18 +1,18 @@
-﻿using LightCodec.util;
+﻿using LightCodec.Utils;
 using System;
 using static LightCodec.atrac3.Atrac3Data;
 using static LightCodec.atrac3plus.Atrac;
-using static LightCodec.util.CodecUtils;
-using static LightCodec.util.FloatDSP;
+using static LightCodec.Utils.CodecUtils;
+using static LightCodec.Utils.FloatDSP;
 using static System.Math;
 using Atrac = LightCodec.atrac3plus.Atrac;
-using BitReader = LightCodec.util.BitReader;
-using FFT = LightCodec.util.FFT;
-using VLC = LightCodec.util.VLC;
+using BitReader = LightCodec.Utils.BitReader;
+using FFT = LightCodec.Utils.FFT;
+using VLC = LightCodec.Utils.VLC;
 
 namespace LightCodec.atrac3
 {
-    public class Atrac3Decoder : ICodec
+    public class Atrac3Decoder : ILightCodec
     {
         public const int AT3_ERROR = -2;
         public const int JOINT_STEREO = 0x12;
@@ -96,14 +96,12 @@ namespace LightCodec.atrac3
         {
             if (oddBand)
             {
-                /// <summary>
-                /// Reverse the odd bands before IMDCT, this is an effect of the QMF
-                /// transform or it gives better compression to do it this way.
-                /// FIXME: It should be possible to handle this in imdct_calc
-                /// for that to happen a modification of the prerotation step of
-                /// all SIMD code and C code is needed.
-                /// Or fix the functions before so they generate a pre reversed spectrum.
-                /// </summary>
+                // Reverse the odd bands before IMDCT, this is an effect of the QMF
+                // transform or it gives better compression to do it this way.
+                // FIXME: It should be possible to handle this in imdct_calc
+                // for that to happen a modification of the prerotation step of
+                // all SIMD code and C code is needed.
+                // Or fix the functions before so they generate a pre reversed spectrum.
                 for (int i = 0; i < 128; i++)
                 {
                     float tmp = input[inputOffset + i];
@@ -389,12 +387,12 @@ namespace LightCodec.atrac3
                 else
                 {
                     // this subband was not coded, so zero the entire subband
-                    Array.Fill(output, first, first + subbandSize, 0);
+                    Arrays.Fill(output, first, first + subbandSize, 0f);
                 }
             }
 
             // clear the subbands that were not coded
-            Array.Fill(output, subband_tab[i], SAMPLES_PER_FRAME, 0);
+            Arrays.Fill(output, subband_tab[i], SAMPLES_PER_FRAME, 0f);
 
             return numSubbands;
         }
@@ -600,7 +598,7 @@ namespace LightCodec.atrac3
                 }
                 else
                 {
-                    Array.Fill(snd.imdctBuf, 0, 512, 0);
+                    Array.Fill(snd.imdctBuf, 0f, 0, 512);
                 }
 
                 // gain compensation and overlapping
