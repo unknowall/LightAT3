@@ -11,6 +11,7 @@ namespace LightCodec
         AT3plus = 1,
         AAC = 2,
         MP3 = 3,
+		NULL = 4
     }
 
     public class NullCodec : ILightCodec
@@ -54,6 +55,20 @@ namespace LightCodec
 
             return codec;
         }
+
+        //public static ILightVideo Get(VideoCodec codecType)
+        //{
+        //    ILightVideo codec = new NullVideoCodec();
+
+        //    switch (codecType)
+        //    {
+        //        case VideoCodec.H264:
+        //            codec = new H264Decoder();
+        //            break;
+        //    }
+
+        //    return codec;
+        //}
     }
 
 }

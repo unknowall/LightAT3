@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo", "Demo\Demo.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LightCodec", "LightCodec\LightCodec.csproj", "{7CBFEE37-43F5-478A-402A-012559FF7770}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "H264Demo", "H264Demo\H264Demo.csproj", "{DBAA6EF1-A5EE-44F0-BC55-7D22D7E46443}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,6 +26,10 @@ Global
 		{7CBFEE37-43F5-478A-402A-012559FF7770}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7CBFEE37-43F5-478A-402A-012559FF7770}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7CBFEE37-43F5-478A-402A-012559FF7770}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBAA6EF1-A5EE-44F0-BC55-7D22D7E46443}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBAA6EF1-A5EE-44F0-BC55-7D22D7E46443}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBAA6EF1-A5EE-44F0-BC55-7D22D7E46443}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBAA6EF1-A5EE-44F0-BC55-7D22D7E46443}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

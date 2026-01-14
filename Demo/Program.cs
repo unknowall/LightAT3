@@ -48,6 +48,10 @@ class Program
 
         Player player = new Player();
 
+        Console.WriteLine();
+        Console.WriteLine("LightCodec DEMO.");
+        Console.WriteLine();
+
         Task.Factory.StartNew(() =>
         {
             ret = player.Play(Fn);
@@ -186,7 +190,7 @@ class Program
 
             //DataStream.CopyToFile("./Data.bin");
 
-            DataStream.Position = 0;
+            DataStream.Position = 0;// Fact.SampleOffset > HeadSize ? Fact.SampleOffset - HeadSize : 0;
 
             var BlockSize = Format.BlockSize;
             if (BlockSize <= 0)

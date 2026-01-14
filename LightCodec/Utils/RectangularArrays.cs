@@ -1,6 +1,6 @@
 ﻿namespace LightCodec.Utils
 {
-    internal static class RectangularArrays
+    public static class RectangularArrays
     {
         public static int[][][] ReturnRectangularIntArray(int size1, int size2, int size3)
         {

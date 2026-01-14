@@ -9,9 +9,35 @@ using System.Text;
 
 namespace LightCodec
 {
-
     public static class StreamExtensions
     {
+        public static SliceStream Slice(this Stream baseStream)
+        {
+            return SliceStream.CreateWithLength(baseStream);
+        }
+
+        public static byte[] ToArray(this Stream stream)
+        {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+
+            if (stream is MemoryStream memoryStream)
+            {
+                return memoryStream.ToArray();
+            }
+
+            using (var ms = new MemoryStream())
+            {
+                stream.CopyTo(ms);
+                return ms.ToArray();
+            }
+        }
+
+        public static MemoryStream ReadStreamCopy(this Stream stream, long toRead = -1)
+        {
+            if (toRead == -1) toRead = stream.Available();
+            return new MemoryStream(stream.ReadBytes((int)toRead));
+        }
 
         public static bool Eof(this Stream stream)
         {
@@ -48,6 +74,11 @@ namespace LightCodec
                 stream.Position = oldPosition;
             }
             return stream;
+        }
+
+        public static SliceStream SliceWithLength(this Stream baseStream, long thisStart = 0, long thisLength = -1, bool? canWrite = null)
+        {
+            return SliceStream.CreateWithLength(baseStream, thisStart, thisLength, canWrite);
         }
 
         public static SliceStream ReadStream(this Stream stream, long toRead = -1)

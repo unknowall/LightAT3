@@ -85,6 +85,12 @@ namespace LightCodec.atrac3plus
                     System.Console.WriteLine(string.Format("Too many channel blocks"));
                     return AT3P_ERROR;
                 }
+                
+                if (ctx.channelUnits[chBlock] == null)
+                {
+                    System.Console.WriteLine(string.Format($"channelUnits[{chBlock}] = NULL!"));
+                    return AT3P_ERROR;
+                }
 
                 ctx.channelUnits[chBlock].BitReader = ctx.br;
 

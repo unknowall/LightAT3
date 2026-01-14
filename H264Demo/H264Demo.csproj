@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <LangVersion>9</LangVersion>
+        <NullableContextOptions>disable</NullableContextOptions>
+        <RootNamespace>VideoDemo</RootNamespace>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <TargetFramework>net8.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <UseWindowsForms>False</UseWindowsForms>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <PlatformTarget>AnyCPU</PlatformTarget>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <PlatformTarget>AnyCPU</PlatformTarget>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\LightCodec\LightCodec.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="FFmpeg.AutoGen">
+        <HintPath>..\bin\FFmpeg.AutoGen.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+</Project>
