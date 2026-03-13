@@ -5,47 +5,6 @@ namespace LightCodec.h264.decoder
 {
     public class CAVLCContext
     {
-        /*
-         * H.26L/H.264/AVC/JVT/14496-10/... cavlc bitstream decoding
-         * Copyright (c) 2003 Michael Niedermayer <michaelni@gmx.at>
-         *
-         * This file is part of FFmpeg.
-         *
-         * FFmpeg is free software; you can redistribute it and/or
-         * modify it under the terms of the GNU Lesser General Public
-         * License as published by the Free Software Foundation; either
-         * version 2.1 of the License, or (at your option) any later version.
-         *
-         * FFmpeg is distributed in the hope that it will be useful,
-         * but WITHOUT ANY WARRANTY; without even the implied warranty of
-         * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-         * Lesser General Public License for more details.
-         *
-         * You should have received a copy of the GNU Lesser General Public
-         * License along with FFmpeg; if not, write to the Free Software
-         * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
-         */
-
-        /**
-         * @file
-         * H.264 / AVC / MPEG4 part10 cavlc bitstream decoding.
-         * @author Michael Niedermayer <michaelni@gmx.at>
-         */
-
-        /*
-        #define CABAC 0
-
-        #include "internal.h"
-        #include "avcodec.h"
-        #include "mpegvideo.h"
-        #include "h264.h"
-        #include "h264data.h" // FIXME FIXME FIXME
-        #include "h264_mvpred.h"
-        #include "golomb.h"
-
-        //#undef NDEBUG
-        #include <assert.h>
-        */
         //static const uint8_t golomb_to_inter_cbp_gray[16]= {
         public static readonly int[] golomb_to_inter_cbp_gray =
         {

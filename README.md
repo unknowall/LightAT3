@@ -6,6 +6,7 @@ The decoding output has only minimal LSB (Least Significant Bit) differences com
 
 ## Features
 - Decode ATRAC3/AT3plus/MP3/AAC audio formats
+- Decode H264 video format
 - Pure C# implementation with no external dependencies
 - No FFmpeg or native libraries required
 
@@ -46,4 +47,4 @@ while (!DataStream.Eof())
 Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## License
-This project is licensed under the GPL-2.0 license.
+This project is licensed under the LGPL-2.1 license.

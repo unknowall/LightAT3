@@ -125,7 +125,7 @@ namespace LightCodec.h264
                     cacheRead[0] = cacheRead[1];
                     cacheRead[1] = cacheRead[2];
                     cacheRead[2] = ReadByte();
-                } // while
+                }
 
                 pkt.size = dataPointer;
                 pkt.data_base = inbuf;

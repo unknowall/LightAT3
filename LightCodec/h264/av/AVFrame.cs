@@ -327,8 +327,6 @@ namespace LightCodec.av
 
         public AVFrame copyTo(AVFrame ret)
         {
-            /////////////???????????????????????????
-            //To do: Implement this method! 
             ret.age = age;
             ret.b_frame_score = b_frame_score;
             for (int i = 0; i < @base.Length; i++)
@@ -395,8 +393,7 @@ namespace LightCodec.av
 
         public void resetToZero()
         {
-            /////////////???????????????????????????
-            //To do: Implement this method! 
+
         }
 
         public static void pic_as_field(AVFrame pic, int parity)

@@ -3,17 +3,17 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 #pragma warning disable CS8618
 #pragma warning disable CS8625
 #pragma warning disable CS0649
 
 using SDL2;
-
 using LightCodec;
 using LightCodec.av;
 using LightCodec.h264;
-using System.Runtime.InteropServices;
 
 class Program
 {
@@ -178,6 +178,7 @@ unsafe class PlayH264
 
             try
             {
+
                 AVFrame Frame = H264Codec.DecodeFrame();
 
                 if (Frame != null)
@@ -252,38 +253,38 @@ unsafe class PlayH264
         SDL.SDL_RenderPresent(_renderer);
     }
 
-    public static void YUV2RGB(AVFrame f, int[] rgb)
-    {
-        var luma = f.data_base[0];
-        var cb = f.data_base[1];
-        var cr = f.data_base[2];
-        int stride = f.linesize[0];
-        int strideChroma = f.linesize[1];
+    //public static void YUV2RGB(AVFrame f, int[] rgb)
+    //{
+    //    var luma = f.data_base[0];
+    //    var cb = f.data_base[1];
+    //    var cr = f.data_base[2];
+    //    int stride = f.linesize[0];
+    //    int strideChroma = f.linesize[1];
 
-        fixed (int* rgbPtr = rgb)
-        {
-            for (int y = 0; y < f.imageHeight; y++)
-            {
-                int lineOffLuma = y * stride;
-                int lineOffChroma = (y >> 1) * strideChroma;
+    //    fixed (int* rgbPtr = rgb)
+    //    {
+    //        for (int y = 0; y < f.imageHeight; y++)
+    //        {
+    //            int lineOffLuma = y * stride;
+    //            int lineOffChroma = (y >> 1) * strideChroma;
 
-                for (int x = 0; x < f.imageWidth; x++)
-                {
-                    int c = luma[lineOffLuma + x] - 16;
-                    int d = cb[lineOffChroma + (x >> 1)] - 128;
-                    int e = cr[lineOffChroma + (x >> 1)] - 128;
+    //            for (int x = 0; x < f.imageWidth; x++)
+    //            {
+    //                int c = luma[lineOffLuma + x] - 16;
+    //                int d = cb[lineOffChroma + (x >> 1)] - 128;
+    //                int e = cr[lineOffChroma + (x >> 1)] - 128;
 
-                    var c298 = 298 * c;
+    //                var c298 = 298 * c;
 
-                    byte red = (byte)Math.Clamp((c298 + 409 * e + 128) >> 8, 0, 255);
-                    byte green = (byte)Math.Clamp((c298 - 100 * d - 208 * e + 128) >> 8, 0, 255);
-                    byte blue = (byte)Math.Clamp((c298 + 516 * d + 128) >> 8, 0, 255);
-                    byte alpha = 255;
+    //                byte red = (byte)Math.Clamp((c298 + 409 * e + 128) >> 8, 0, 255);
+    //                byte green = (byte)Math.Clamp((c298 - 100 * d - 208 * e + 128) >> 8, 0, 255);
+    //                byte blue = (byte)Math.Clamp((c298 + 516 * d + 128) >> 8, 0, 255);
+    //                byte alpha = 255;
 
-                    rgbPtr[lineOffLuma + x] = (alpha << 24) | (red << 16) | (green << 8) | (blue << 0);
-                }
-            }
-        }
-    }
+    //                rgbPtr[lineOffLuma + x] = (alpha << 24) | (red << 16) | (green << 8) | (blue << 0);
+    //            }
+    //        }
+    //    }
+    //}
 
 }
